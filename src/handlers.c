@@ -20,20 +20,24 @@ void handle_new_connection(int server_socket){
   }
   printf("New connection with fd: %d\n", client_socket);
 
-  //handle LTE ranom access
+  //handle LTE random access
   int received_data_count = 0;
   int read_data = 0;
-  unsigned char read_write_buffer[PACKET_SIZE];
+  unsigned char receive_buffer[PACKET_SIZE];
+
   while(received_data_count<sizeof(struct RandomAccessPreamble)){
-    read_data = read(client_socket, &read_write_buffer + received_data_count, sizeof(struct RandomAccessPreamble)-received_data_count);
+    read_data = read(client_socket, &receive_buffer + received_data_count, sizeof(struct RandomAccessPreamble)-received_data_count);
     if(read_data > 0){
       received_data_count += read_data;
     }
   }
 
-  struct RandomAccessPreamble client_preamble = *((struct RandomAccessPreamble *)read_write_buffer);
+  struct RandomAccessPreamble client_preamble = *((struct RandomAccessPreamble *)receive_buffer);
 
-  printf("%c\n", client_preamble.cyclic_prefix);
+  add_connected_client(client_socket, client_preamble.sequence);
+  printf("Current connected clients number: %d\n", connected_clients_number);
+
+  printf("Clients cyclic prefix: '%c'\n", client_preamble.cyclic_prefix);
 
   struct RRC_ConnectionRequest server_RRC_response;
   server_RRC_response.sequence = client_preamble.sequence;
@@ -41,9 +45,7 @@ void handle_new_connection(int server_socket){
   server_RRC_response.uplink_resource_grant = false;
   server_RRC_response.temp_c_rnti = client_socket;
 
-  memcpy(read_write_buffer, &server_RRC_response, sizeof(struct RRC_ConnectionRequest));
-
-  write(client_socket, read_write_buffer, sizeof(struct RRC_ConnectionRequest));
+  write(client_socket, &server_RRC_response, sizeof(struct RRC_ConnectionRequest));
 
 }
 
@@ -63,9 +65,11 @@ void handle_client(int fd){
     }
   }
   if(rec_char_index == 0){
-    printf("Client %d closed connection\n", fd);
+    /*printf("Client %d closed connection\n", fd);
+    del_connected_client(fd);
+    printf("Current connected clients number: %d", connected_clients_number);
     epoll_ctl(epollfd, EPOLL_CTL_DEL, fd,NULL);
-    close(fd);
+    close(fd);*/
     return;
   }
   printf("Client %d sent: %s", fd, rec_msg_buffer);
@@ -97,9 +101,10 @@ int make_socket_non_blocking (int sfd)
   return 0;
 }
 
-void epoll_connection(int argc, char** argv)
+void server_run(int argc, char** argv)
 {
-    //server and client addressess
+
+  //server and client addressess
   unsigned short PORT = atoi(argv[1]);
 	struct sockaddr_in server_address;
   int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -159,6 +164,8 @@ void epoll_connection(int argc, char** argv)
                 int fd = events[n].data.fd;
                 epoll_ctl(epollfd, EPOLL_CTL_DEL, fd,NULL);
                 printf("Closing connection with fd: %d\n", fd);
+                del_connected_client(fd);
+                printf("Current connected clients number: %d\n", connected_clients_number);
                 close (fd);
               }
               if(events[n].events & EPOLLIN){

@@ -14,6 +14,8 @@
 #include <fcntl.h>
 
 #include "../../LTE-Client/Headers/preambles.h"
+#include "../Headers/clients_management.h"
+
 
 #define MAX_MSG_LEN 256
 #define MAX_EVENTS 10
@@ -30,6 +32,6 @@ int make_socket_non_blocking (int sfd);
 
 void handle_client(int fd);
 
-void epoll_connection(int argc, char** argv);
+void server_run(int argc, char** argv);
 
 #endif

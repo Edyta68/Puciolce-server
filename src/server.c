@@ -8,6 +8,7 @@ int main(int argc, char** argv){
     printf("Invalid number of arguments\n");
     exit(EXIT_FAILURE);
   }
-    epoll_connection(argc, argv);
+  
+  server_run(argc, argv);
   return 0;
 }
