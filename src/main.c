@@ -1,4 +1,4 @@
-#include "../Headers/handlers.h"
+#include "../headers/clients_handling.h"
 
 int main(int argc, char** argv){
 
@@ -8,7 +8,7 @@ int main(int argc, char** argv){
     printf("Invalid number of arguments\n");
     exit(EXIT_FAILURE);
   }
-  
+
   server_run(argc, argv);
   return 0;
 }

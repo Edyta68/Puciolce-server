@@ -1,5 +1,5 @@
-#include "../Headers/clients_management.h"
-#include <stdio.h>
+#include "../headers/clients_registry.h"
+
 connected_client connected_clients[MAX_CLIENTS];
 int connected_clients_number;
 

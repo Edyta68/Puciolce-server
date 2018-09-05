@@ -14,12 +14,13 @@
 #include <fcntl.h>
 
 #include "../../LTE-Client/Headers/preambles.h"
-#include "../Headers/clients_management.h"
+#include "clients_registry.h"
+#include "LTE.h"
 
 
 #define MAX_MSG_LEN 256
 #define MAX_EVENTS 10
-#define PACKET_SIZE 256
+
 
 
 //epoll
