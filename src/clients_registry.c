@@ -1,7 +1,7 @@
 #include "../headers/clients_registry.h"
 
 connected_client connected_clients[MAX_CLIENTS];
-int connected_clients_number;
+int connected_clients_number = 0;
 
 int get_connected_client(int temp_c_rnti){
   for(int i=0; i<connected_clients_number; i++){
@@ -22,9 +22,9 @@ int add_connected_client(int temp_c_rnti, Sequence sequence){
     }
   }
   connected_clients[connected_clients_number].temp_c_rnti = temp_c_rnti;
-  connected_clients[connected_clients_number].sequence = sequence;
+  connected_clients[connected_clients_number++].sequence = sequence;
   printf("Current connected clients number: %d\n", connected_clients_number);
-  return connected_clients_number++;
+  return connected_clients_number;
 }
 
 int del_connected_client(int temp_c_rnti){

@@ -69,21 +69,28 @@ void handle_new_connection(int server_socket){
 
   //handle LTE Random Access
   int lte_result = 0;
-  lte_result = lte_random_access_procedure(client_socket);
+
+  RandomAccessPreamble client_preamble = {};
+  lte_result = lte_random_access_procedure(client_socket, &client_preamble);
   if(lte_result == ERR_LTE_READ_TIMEOUT){
     printf("Client not responding. Random Access Procedure aborted.\n");
     close_connection(client_socket);
   }
+  printf("Clients cyclic prefix: '%c'\n", client_preamble.cyclic_prefix);
+  add_connected_client(client_socket, client_preamble.sequence);
+
   //handle LTE RRC Connection Establishment
-  lte_result = lte_rrc_connection_establishment(client_socket);
+  RRC_Connection_Request connection_request = {};
+  lte_result = lte_rrc_connection_establishment(client_socket, &connection_request);
   if(lte_result == ERR_LTE_READ_TIMEOUT){
     printf("Client not responding. Random Access Procedure aborted.\n");
     close_connection(client_socket);
   }
   else if(lte_result == ERR_LTE_DATA_MISMATCH){
-    printf("Missmatch in expected and received c-rnti. RRC Connection Establishment refused.\n");
+    printf("Mismatch in expected and received c-rnti. RRC Connection Establishment refused.\n");
     close_connection(client_socket);
   }
+  printf("RRC Connection Establishment succeeded\n");
 }
 
 void close_connection(int client_socket){
