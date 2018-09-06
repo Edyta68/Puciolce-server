@@ -14,6 +14,6 @@
 
 void lte_random_access_procedure(int client_socket);
 
-void lte_rrc_connection_establishment(int client_socket);
+bool lte_rrc_connection_establishment(int client_socket);
 
 #endif

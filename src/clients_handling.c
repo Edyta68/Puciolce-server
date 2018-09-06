@@ -56,7 +56,17 @@ void handle_new_connection(int server_socket){
 
   //handle LTE random access
   lte_random_access_procedure(client_socket);
-  lte_rrc_connection_establishment(client_socket);
+  if(!lte_rrc_connection_establishment(client_socket)){
+    close_connection(client_socket);
+  }
+}
+
+void close_connection(int client_socket){
+  epoll_ctl(epollfd, EPOLL_CTL_DEL, client_socket, NULL);
+  printf("Closing connection with fd: %d\n", client_socket);
+  del_connected_client(client_socket);
+  printf("Current connected clients number: %d\n", connected_clients_number);
+  close (client_socket);
 }
 
 void handle_client(int fd){
@@ -75,11 +85,6 @@ void handle_client(int fd){
     }
   }
   if(rec_char_index == 0){
-    /*printf("Client %d closed connection\n", fd);
-    del_connected_client(fd);
-    printf("Current connected clients number: %d", connected_clients_number);
-    epoll_ctl(epollfd, EPOLL_CTL_DEL, fd,NULL);
-    close(fd);*/
     return;
   }
   printf("Client %d sent: %s", fd, rec_msg_buffer);
@@ -91,7 +96,6 @@ void handle_client(int fd){
 
 void server_run(int argc, char** argv)
 {
-
   //server and client addressess
   unsigned short PORT = atoi(argv[1]);
 	struct sockaddr_in server_address;
@@ -149,12 +153,7 @@ void server_run(int argc, char** argv)
             handle_new_connection(server_socket);
           } else {
               if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
-                int fd = events[n].data.fd;
-                epoll_ctl(epollfd, EPOLL_CTL_DEL, fd,NULL);
-                printf("Closing connection with fd: %d\n", fd);
-                del_connected_client(fd);
-                printf("Current connected clients number: %d\n", connected_clients_number);
-                close (fd);
+                close_connection(events[n].data.fd);
               }
               if(events[n].events & EPOLLIN){
                 handle_client(events[n].data.fd);
