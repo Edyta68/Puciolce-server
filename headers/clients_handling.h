@@ -12,6 +12,7 @@
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <time.h>
 
 #include "preambles.h"
 #include "clients_registry.h"
@@ -20,7 +21,7 @@
 
 #define MAX_MSG_LEN 256
 #define MAX_EVENTS 10
-
+#define MAX_READ_TIMEOUT_MS 1000.f
 
 
 //epoll
@@ -29,7 +30,7 @@ int nfds, epollfd;
 
 int make_socket_non_blocking (int sfd);
 
-void read_data_from_socket(int client_socket, void *buffer, int size);
+int read_data_from_socket(int client_socket, void *buffer, int size);
 
 void handle_new_connection(int server_socket);
 

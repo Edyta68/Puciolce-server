@@ -22,16 +22,28 @@ int make_socket_non_blocking (int sfd)
   return 0;
 }
 
-void read_data_from_socket(int client_socket, void *receive_buffer, int size){
+int read_data_from_socket(int client_socket, void *receive_buffer, int size){
+  clock_t last_read_time = clock();
+  clock_t current_read_time;
+
   int accumuleted_received_data_count = 0;
   int current_read_data_count = 0;
 
   while(accumuleted_received_data_count < sizeof(struct RandomAccessPreamble)){
     current_read_data_count = read(client_socket, receive_buffer + accumuleted_received_data_count, sizeof(struct RandomAccessPreamble)-accumuleted_received_data_count);
     if(current_read_data_count > 0){
+      clock_t last_read_time = clock();
       accumuleted_received_data_count += current_read_data_count;
+    }else{
+      current_read_time = clock();
+      double delta_time = (double)(current_read_time - last_read_time)/CLOCKS_PER_SEC*1000.f;
+      if(delta_time > MAX_READ_TIMEOUT_MS){
+        return accumuleted_received_data_count;
+      }
     }
   }
+
+  return accumuleted_received_data_count;
 }
 
 void handle_new_connection(int server_socket){
