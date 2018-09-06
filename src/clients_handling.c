@@ -56,7 +56,7 @@ void handle_new_connection(int server_socket){
 
   //handle LTE random access
   lte_random_access_procedure(client_socket);
-
+  lte_rrc_connection_establishment(client_socket);
 }
 
 void handle_client(int fd){
