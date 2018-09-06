@@ -2,13 +2,9 @@
 
 void lte_random_access_procedure(int client_socket){
 
-  unsigned char receive_buffer[PACKET_SIZE];
-
   struct RandomAccessPreamble client_preamble = {};
 
   read_data_from_socket(client_socket, &client_preamble, sizeof(client_preamble));
-
-  //struct RandomAccessPreamble client_preamble = *((struct RandomAccessPreamble *)receive_buffer);
 
   add_connected_client(client_socket, client_preamble.sequence);
   printf("Current connected clients number: %d\n", connected_clients_number);
