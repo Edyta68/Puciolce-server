@@ -11,7 +11,7 @@ void lte_random_access_procedure(int client_socket){
 
   printf("Clients cyclic prefix: '%c'\n", client_preamble.cyclic_prefix);
 
-  struct RRC_ConnectionRequest server_RRC_response = {};
+  struct RandomAccessResponse server_RRC_response = {};
   server_RRC_response.sequence = client_preamble.sequence;
   server_RRC_response.timing_advance_value = 5;
   server_RRC_response.uplink_resource_grant = false;

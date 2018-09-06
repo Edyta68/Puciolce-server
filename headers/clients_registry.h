@@ -1,7 +1,7 @@
 #ifndef SERVER_DATA_H_
 #define SERVER_DATA_H_
 
-#include "../../LTE-Client/Headers/preambles.h"
+#include "preambles.h"
 
 #define MAX_CLIENTS 256
 

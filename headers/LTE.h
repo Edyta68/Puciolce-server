@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "../../LTE-Client/Headers/preambles.h"
+#include "preambles.h"
 #include "clients_registry.h"
 #include "clients_handling.h"
 

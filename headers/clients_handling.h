@@ -13,7 +13,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
-#include "../../LTE-Client/Headers/preambles.h"
+#include "preambles.h"
 #include "clients_registry.h"
 #include "LTE.h"
 
