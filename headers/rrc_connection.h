@@ -33,19 +33,10 @@ typedef enum liblte_rrc_periodic_prohibit_bsr_timer_text {
   sf10,
   sf20,
   sf50,
-<<<<<<< HEAD
   sf100,
   sf200,
   sf500,
   sf1000,
-=======
-  sf100.
-  sf200,
-  sf500,
-  sf1000,
-  INFINITY,
-  N_ITEMS
->>>>>>> 1ff3c132eb4de50f77b5fa0f95b46b7607d60d6b
 } liblte_rrc_periodic_prohibit_bsr_timer_text;
 
 typedef enum liblte_rrc_delta_mcs_enabled_text {
@@ -60,11 +51,6 @@ typedef enum RRC_POLL_PDU {
   p32,
   p64,
   p128,
-<<<<<<< HEAD
-=======
-  INFINITY,
-  N_ITEMS
->>>>>>> 1ff3c132eb4de50f77b5fa0f95b46b7607d60d6b
 }RRC_POLL_PDU;
 
 typedef enum MAX_HARQ_TX {
@@ -82,12 +68,6 @@ typedef enum MAX_HARQ_TX {
   n20,
   n24,
   n28,
-<<<<<<< HEAD
-=======
-  spare2,
-  spare1,
-  n_items
->>>>>>> 1ff3c132eb4de50f77b5fa0f95b46b7607d60d6b
 }MAX_HARQ_TX;
 
 typedef enum MAX_RET_THRESHOLD {
@@ -99,10 +79,6 @@ typedef enum MAX_RET_THRESHOLD {
   t8,
   t16,
   t32,
-<<<<<<< HEAD
-=======
-  N_ITEMS
->>>>>>> 1ff3c132eb4de50f77b5fa0f95b46b7607d60d6b
 }MAX_RET_THRESHOLD;
 
 typedef struct UL_AM_RLC {
