@@ -4,9 +4,7 @@ connected_client connected_clients[MAX_CLIENTS];
 int connected_clients_number;
 
 int get_connected_client(int temp_c_rnti){
-  //printf("get:%d\n", temp_c_rnti);
   for(int i=0; i<connected_clients_number; i++){
-    //printf("get2:%d\n", connected_clients[i].temp_c_rnti);
     if(connected_clients[i].temp_c_rnti == temp_c_rnti){
       return i;
     }
@@ -15,7 +13,6 @@ int get_connected_client(int temp_c_rnti){
 }
 
 int add_connected_client(int temp_c_rnti, Sequence sequence){
-  //printf("add:%d\n", temp_c_rnti);
   if(connected_clients_number == MAX_CLIENTS-1){
     return ERR_ADD_CC_OVERFLOW;
   }
@@ -26,6 +23,7 @@ int add_connected_client(int temp_c_rnti, Sequence sequence){
   }
   connected_clients[connected_clients_number].temp_c_rnti = temp_c_rnti;
   connected_clients[connected_clients_number].sequence = sequence;
+  printf("Current connected clients number: %d\n", connected_clients_number);
   return connected_clients_number++;
 }
 

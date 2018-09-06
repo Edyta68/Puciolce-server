@@ -1,6 +1,8 @@
 #ifndef SERVER_DATA_H_
 #define SERVER_DATA_H_
 
+#include <stdio.h>
+
 #include "preambles.h"
 
 #define MAX_CLIENTS 256

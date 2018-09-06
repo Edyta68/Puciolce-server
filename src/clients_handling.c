@@ -29,12 +29,13 @@ int read_data_from_socket(int client_socket, void *receive_buffer, int size){
   int accumuleted_received_data_count = 0;
   int current_read_data_count = 0;
 
-  while(accumuleted_received_data_count < sizeof(struct RandomAccessPreamble)){
-    current_read_data_count = read(client_socket, receive_buffer + accumuleted_received_data_count, sizeof(struct RandomAccessPreamble)-accumuleted_received_data_count);
+  while(accumuleted_received_data_count < size){
+    current_read_data_count = read(client_socket, receive_buffer + accumuleted_received_data_count, size-accumuleted_received_data_count);
     if(current_read_data_count > 0){
       clock_t last_read_time = clock();
       accumuleted_received_data_count += current_read_data_count;
-    }else{
+    }
+    else{
       current_read_time = clock();
       double delta_time = (double)(current_read_time - last_read_time)/CLOCKS_PER_SEC*1000.f;
       if(delta_time > MAX_READ_TIMEOUT_MS){
@@ -66,9 +67,21 @@ void handle_new_connection(int server_socket){
   }
   printf("New connection with fd: %d\n", client_socket);
 
-  //handle LTE random access
-  lte_random_access_procedure(client_socket);
-  if(!lte_rrc_connection_establishment(client_socket)){
+  //handle LTE Random Access
+  int lte_result = 0;
+  lte_result = lte_random_access_procedure(client_socket);
+  if(lte_result == ERR_LTE_READ_TIMEOUT){
+    printf("Client not responding. Random Access Procedure aborted.\n");
+    close_connection(client_socket);
+  }
+  //handle LTE RRC Connection Establishment
+  lte_result = lte_rrc_connection_establishment(client_socket);
+  if(lte_result == ERR_LTE_READ_TIMEOUT){
+    printf("Client not responding. Random Access Procedure aborted.\n");
+    close_connection(client_socket);
+  }
+  else if(lte_result == ERR_LTE_DATA_MISMATCH){
+    printf("Missmatch in expected and received c-rnti. RRC Connection Establishment refused.\n");
     close_connection(client_socket);
   }
 }

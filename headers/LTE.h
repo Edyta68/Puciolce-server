@@ -12,8 +12,11 @@
 
 #define PACKET_SIZE 256
 
-void lte_random_access_procedure(int client_socket);
+#define ERR_LTE_READ_TIMEOUT -1
+#define ERR_LTE_DATA_MISMATCH -2
 
-bool lte_rrc_connection_establishment(int client_socket);
+int lte_random_access_procedure(int client_socket);
+
+int lte_rrc_connection_establishment(int client_socket);
 
 #endif
