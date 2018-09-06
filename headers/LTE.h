@@ -7,6 +7,7 @@
 
 #include "../../LTE-Client/Headers/preambles.h"
 #include "clients_registry.h"
+#include "clients_handling.h"
 
 #define PACKET_SIZE 256
 

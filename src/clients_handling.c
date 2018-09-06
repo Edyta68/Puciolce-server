@@ -1,5 +1,39 @@
 #include "../headers/clients_handling.h"
 
+int make_socket_non_blocking (int sfd)
+{
+  int flags, s;
+
+  flags = fcntl (sfd, F_GETFL, 0);
+  if (flags == -1)
+    {
+      perror ("fcntl");
+      return -1;
+    }
+
+  flags |= O_NONBLOCK;
+  s = fcntl (sfd, F_SETFL, flags);
+  if (s == -1)
+    {
+      perror ("fcntl");
+      return -1;
+    }
+
+  return 0;
+}
+
+void read_data_from_socket(int client_socket, void *receive_buffer, int size){
+  int accumuleted_received_data_count = 0;
+  int current_read_data_count = 0;
+
+  while(accumuleted_received_data_count < sizeof(struct RandomAccessPreamble)){
+    current_read_data_count = read(client_socket, receive_buffer + accumuleted_received_data_count, sizeof(struct RandomAccessPreamble)-accumuleted_received_data_count);
+    if(current_read_data_count > 0){
+      accumuleted_received_data_count += current_read_data_count;
+    }
+  }
+}
+
 void handle_new_connection(int server_socket){
   struct sockaddr_in client_address;
   int client_address_len = sizeof(client_address);
@@ -53,28 +87,6 @@ void handle_client(int fd){
   printf("Server responding to client %d: %s", fd, rec_msg_buffer);
   printf("\n");
   write(fd, rec_msg_buffer, strlen(rec_msg_buffer)+1);
-}
-
-int make_socket_non_blocking (int sfd)
-{
-  int flags, s;
-
-  flags = fcntl (sfd, F_GETFL, 0);
-  if (flags == -1)
-    {
-      perror ("fcntl");
-      return -1;
-    }
-
-  flags |= O_NONBLOCK;
-  s = fcntl (sfd, F_SETFL, flags);
-  if (s == -1)
-    {
-      perror ("fcntl");
-      return -1;
-    }
-
-  return 0;
 }
 
 void server_run(int argc, char** argv)

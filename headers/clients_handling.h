@@ -27,9 +27,11 @@
 struct epoll_event ev, events[MAX_EVENTS];
 int nfds, epollfd;
 
-void handle_new_connection(int server_socket);
-
 int make_socket_non_blocking (int sfd);
+
+void read_data_from_socket(int client_socket, void *buffer, int size);
+
+void handle_new_connection(int server_socket);
 
 void handle_client(int fd);
 
