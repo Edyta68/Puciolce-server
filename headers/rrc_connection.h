@@ -25,7 +25,7 @@ typedef enum bucket_Size_Duration {
   ms150,
   ms300,
   ms500,
-  ms1000,
+  ms1000
 } bucketSizeDuration;
 
 typedef enum liblte_rrc_periodic_prohibit_bsr_timer_text {
@@ -36,13 +36,13 @@ typedef enum liblte_rrc_periodic_prohibit_bsr_timer_text {
   sf100,
   sf200,
   sf500,
-  sf1000,
+  sf1000
 } liblte_rrc_periodic_prohibit_bsr_timer_text;
 
-typedef enum liblte_rrc_delta_mcs_enabled_text {
+typedef enum rrc_delta_mcs_enabled {
   en0 = 0,
   en1
-} liblte_rrc_delta_mcs_enabled_text;
+} rrc_delta_mcs_enabled;
 
 typedef enum RRC_POLL_PDU {
   p4 = 0,
@@ -50,7 +50,7 @@ typedef enum RRC_POLL_PDU {
   p16,
   p32,
   p64,
-  p128,
+  p128
 }RRC_POLL_PDU;
 
 typedef enum MAX_HARQ_TX {
@@ -67,7 +67,7 @@ typedef enum MAX_HARQ_TX {
   n16,
   n20,
   n24,
-  n28,
+  n28
 }MAX_HARQ_TX;
 
 typedef enum MAX_RET_THRESHOLD {
@@ -78,8 +78,32 @@ typedef enum MAX_RET_THRESHOLD {
   t6,
   t8,
   t16,
-  t32,
+  t32
 }MAX_RET_THRESHOLD;
+
+typedef enum DL_PATHLOSS_CHANGE {
+  db1 = 0,
+  db3,
+  db6
+}DL_PATHLOSS_CHANGE;
+
+typedef enum Filter_Coefficient {
+  fc0 = 0,
+  fc1,
+  fc2,
+  fc3,
+  fc4,
+  fc5,
+  fc6,
+  fc7,
+  fc8,
+  fc9,
+  fc11,
+  fc13,
+  fc15,
+  fc17,
+  fc19
+} Filter_Coefficient;
 
 typedef struct UL_AM_RLC {
   bucketSizeDuration t_roll_retransmit;
@@ -109,16 +133,16 @@ typedef struct UL_SCH_Config {
 
 typedef struct PHR_Config {
   liblte_rrc_periodic_prohibit_bsr_timer_text periodic_PHR_Timer;
-  liblte_rrc_periodic_prohibit_bsr_timer_text prohibit_PHR_Timer;
-  short DL_Path_Loss_Change;
+  liblte_rrc_periodic_prohibit_bsr_timer_text prohliblte_rrc_delta_mcs_enabled_textibit_PHR_Timer;
+  DL_PATHLOSS_CHANGE DL_Path_Loss_Change;
 } PHR_Config;
 
 typedef struct Uplink_Power_Control_Dedicated {
   int P0_UE_PUSCH;
   int P0_UE_PUCCH;
   int pSRS_Offset;
-  liblte_rrc_delta_mcs_enabled_text deltaMCS_Enabled;
-  short Filter_Coefficient;
+  rrc_delta_mcs_enabled deltaMCS_Enabled;
+  Filter_Coefficient filter_coefficient;
 } Uplink_Power_Control_Dedicated;
 
 typedef struct RRC_connection_Setup {
