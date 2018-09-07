@@ -91,6 +91,9 @@ void handle_new_connection(int server_socket){
     close_connection(client_socket);
   }
   printf("RRC Connection Establishment succeeded\n");
+
+  int client = get_connected_client(client_socket);
+  connected_clients[client].ping.last_time_action = clock();
 }
 
 void close_connection(int client_socket){
@@ -106,24 +109,49 @@ void handle_client(int fd){
   char rec_char_buffer;
   int rec_char_index = 0;
 
-  while(read(fd, &rec_char_buffer, 1) > 0){
-    rec_msg_buffer[rec_char_index++] = rec_char_buffer;
-    if(rec_char_index >= MAX_MSG_LEN){
-      sprintf(rec_msg_buffer, "Message is too long");
-      break;
+  int client = get_connected_client(fd);
+
+  fd_set set;
+  struct timeval timeout;
+  int rv;
+
+  FD_ZERO(&set);
+  FD_SET(fd, &set);
+
+  timeout.tv_sec = 1;
+  timeout.tv_usec = 0;
+
+    rv = select(fd + 1, &set, NULL, NULL, &timeout);
+
+    /*if(rv > 0){
+        while(read(fd, &rec_char_buffer, 1) > 0){
+          rec_msg_buffer[rec_char_index++] = rec_char_buffer;
+          if(rec_char_index >= MAX_MSG_LEN){
+            sprintf(rec_msg_buffer, "Message is too long");
+            break;
+          }
+          if(rec_char_buffer == '\0'){
+            break;
+          }
+        }
+        if(rec_char_index == 0){
+          return;
+        }
+        printf("Client %d sent: %s", fd, rec_msg_buffer);
+        printf("\n");
+        printf("Server responding to client %d: %s", fd, rec_msg_buffer);
+        printf("\n");
+        write(fd, rec_msg_buffer, strlen(rec_msg_buffer)+1);
+        connected_clients[client].ping.last_time_action = clock();
     }
-    if(rec_char_buffer == '\0'){
-      break;
-    }
-  }
-  if(rec_char_index == 0){
-    return;
-  }
-  printf("Client %d sent: %s", fd, rec_msg_buffer);
-  printf("\n");
-  printf("Server responding to client %d: %s", fd, rec_msg_buffer);
-  printf("\n");
-  write(fd, rec_msg_buffer, strlen(rec_msg_buffer)+1);
+    pthread_t not_active, ping;
+    not_active_clients not_active_list;
+    pthread_create(&not_active, NULL, get_all_not_active_clients, (void *)connected_clients);
+    pthread_join(not_active, &not_active_list);
+    if(not_active_list.size > 0) {
+      pthread_create(&ping, NULL, ping_clients, (void *)&not_active_list);
+      pthread_join(ping, NULL);
+    }*/
 }
 
 void server_run(int argc, char** argv)

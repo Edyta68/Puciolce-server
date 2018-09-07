@@ -11,8 +11,11 @@
 #include <string.h>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <fcntl.h>
 #include <time.h>
+#include <pthread.h>
+#include "client_ping.h"
 
 #include "preambles.h"
 #include "clients_registry.h"
