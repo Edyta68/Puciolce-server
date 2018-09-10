@@ -77,6 +77,11 @@ void handle_new_connection(int server_socket){
     close_connection(client_socket);
     return;
   }
+  else if (lte_result == ERR_LTE_DATA_MISMATCH){
+    printf("Mismatch in expected and received message label. Random Access Procedure aborted.\n");
+    close_connection(client_socket);
+    return;
+  }
   printf("Clients cyclic prefix: '%c'\n", client_preamble.cyclic_prefix);
   add_connected_client(client_socket, client_preamble.sequence);
 
