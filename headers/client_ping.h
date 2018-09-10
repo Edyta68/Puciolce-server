@@ -3,11 +3,12 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
+#include <string.h>
 
-typedef struct not_active_clients {
-  int size;
-  int *client_list;
-} not_active_clients;
+#define PING_INTERVAL_HIGH_BATTERY 5000.f //ms
+#define PING_INTERVAL_LOW_BATTERY 10000.f //ms
 
-not_active_clients get_all_not_active_clients(connected_client *connected_clients);
-void ping_clients(not_active_clients *unactive_clients);
+#define PING_MESSAGE "Ping"
+
+void ping_clients();

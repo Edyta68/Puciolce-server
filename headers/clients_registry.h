@@ -16,7 +16,7 @@
 
 typedef struct ping_info {
   bool low_battery_level;
-  clock_t last_time_action;
+  clock_t last_action_time;
 } ping_info;
 
 typedef struct connected_client{
