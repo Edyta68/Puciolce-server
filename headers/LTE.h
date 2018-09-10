@@ -9,6 +9,7 @@
 #include "rrc_connection.h"
 #include "clients_registry.h"
 #include "clients_handling.h"
+#include "message_label.h"
 
 #define PACKET_SIZE 256
 

@@ -1,3 +1,5 @@
+#pragma once
+
 typedef enum Message_Type{
   msg_random_access_preamble = 0,
   msg_random_access_response,

@@ -167,7 +167,8 @@ void server_run(int argc, char** argv)
       for (int n = 0; n < nfds; ++n) {
           if (events[n].data.fd == server_socket) {
             handle_new_connection(server_socket);
-          } else {
+          }
+          else {
               if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
                 close_connection(events[n].data.fd);
               }
@@ -176,7 +177,7 @@ void server_run(int argc, char** argv)
               }
           }
       }
-      
+
       ping_clients();
   }
   printf("Server down\n");
