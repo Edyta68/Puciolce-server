@@ -1,9 +1,10 @@
-
-
 typedef enum Message_Type{
   msg_random_access_preamble = 0,
+  msg_random_access_response,
   msg_rrc_connection_request,
-  msq_ping_request
+  msg_rrc_connection_setup,
+  msg_ping_request,
+  msg_ping_response
 }Message_Type;
 
 typedef struct message_label{
