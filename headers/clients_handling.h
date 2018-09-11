@@ -14,7 +14,7 @@
 #include <sys/select.h>
 #include <fcntl.h>
 #include <time.h>
-
+#include <pthread.h>
 
 #include "client_ping.h"
 #include "preambles.h"
@@ -30,6 +30,7 @@
 //epoll
 struct epoll_event ev, events[MAX_EVENTS];
 int nfds, epollfd;
+
 
 int make_socket_non_blocking (int sfd);
 

@@ -66,7 +66,7 @@ void handle_new_connection(int server_socket){
       exit(EXIT_FAILURE);
   }
   printf("New connection with fd: %d\n", client_socket);
-
+  //return;
   //handle LTE Random Access
   int lte_result = 0;
 
@@ -165,7 +165,14 @@ void server_run(int argc, char** argv)
      exit(EXIT_FAILURE);
    }
 
-  while(1) {
+   pthread_t ping_thread;
+   int thread_error = pthread_create(&ping_thread, NULL,  ping_clients, NULL);
+   if(thread_error){
+       fprintf(stderr,"Error - pthread_create() return code: %d\n",thread_error);
+       exit(EXIT_FAILURE);
+   }
+
+   while(1) {
       nfds = epoll_wait(epollfd, events, MAX_EVENTS, 0);
       if (nfds == -1) {
           perror("epoll_wait");
@@ -186,8 +193,10 @@ void server_run(int argc, char** argv)
           }
       }
 
-      ping_clients();
+      //ping_clients();
   }
+
+  pthread_join( ping_thread, NULL);
   printf("Server down\n");
   close(server_socket);
 }
