@@ -1,3 +1,5 @@
+#pragma once
+
 typedef enum Message_Type
 {
 	msg_random_access_preamble = 0,
@@ -7,7 +9,7 @@ typedef enum Message_Type
 	msg_ping_request,
 	msg_ping_response,
 	msg_ue_shutdown,
-    msg_drx_config
+  msg_drx_config
 } Message_Type;
 
 typedef struct message_label
