@@ -40,7 +40,7 @@ void handle_new_connection(int server_socket);
 
 void close_connection(int client_socket);
 
-void handle_client(int fd);
+void handle_client_input(int fd);
 
 void server_run(int argc, char** argv);
 

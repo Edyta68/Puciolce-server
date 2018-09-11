@@ -58,13 +58,6 @@ void handle_new_connection(int server_socket){
   }
   make_socket_non_blocking(client_socket);
 
-  ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
-  ev.data.fd = client_socket;
-  if (epoll_ctl(epollfd, EPOLL_CTL_ADD, client_socket,
-              &ev) == -1) {
-      perror("epoll_ctl");
-      exit(EXIT_FAILURE);
-  }
   printf("New connection with fd: %d\n", client_socket);
   //return;
   //handle LTE Random Access
@@ -102,6 +95,15 @@ void handle_new_connection(int server_socket){
 
   //int client = get_connected_client(client_socket);
   //connected_clients[client].ping.last_time_action = clock();
+
+  //register new socket to epoll
+  ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
+  ev.data.fd = client_socket;
+  if (epoll_ctl(epollfd, EPOLL_CTL_ADD, client_socket,
+              &ev) == -1) {
+      perror("epoll_ctl");
+      exit(EXIT_FAILURE);
+  }
 }
 
 void close_connection(int client_socket){
@@ -112,11 +114,25 @@ void close_connection(int client_socket){
   close (client_socket);
 }
 
-void handle_client(int fd){
-  char rec_msg_buffer[MAX_MSG_LEN];
-  char rec_char_buffer;
-  int rec_char_index = 0;
-
+void handle_client_input(int client_socket){
+  message_label received_mesage_label = {};
+  //printf("--------- Message from client %d ----------\n", client_socket);
+  if(read_data_from_socket(client_socket, &received_mesage_label, sizeof(received_mesage_label)) < sizeof(received_mesage_label)){
+    //printf("Error reading message label: size mismatch\n");
+    //printf("------------------------------------------\n");
+    return;
+  }
+  //printf("Type_no: %d\n", received_mesage_label.message_type);
+  if(received_mesage_label.message_type == msg_ping_request){
+    printf("--------- Message from client %d ----------\n", client_socket);
+    printf("Type: ping_request\n");
+    printf("------------------------------------------\n");
+  }
+  else if(received_mesage_label.message_type == msg_ping_response){
+    printf("--------- Message from client %d ----------\n", client_socket);
+    printf("Type: ping_response\n");
+    printf("------------------------------------------\n");
+  }
 }
 
 void server_run(int argc, char** argv)
@@ -187,8 +203,8 @@ void server_run(int argc, char** argv)
               if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
                 close_connection(events[n].data.fd);
               }
-              if(events[n].events & EPOLLIN){
-                handle_client(events[n].data.fd);
+              else if(events[n].events & EPOLLIN){
+                handle_client_input(events[n].data.fd);
               }
           }
       }
