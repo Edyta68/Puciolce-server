@@ -1,9 +1,13 @@
-CC=gcc
-CFLAGS=-I./headers
-DEPS = headers/clients_handling.h headers/clients_registry.h headers/LTE.h headers/preambles.h headers/rrc_connection.h headers/client_ping.h headers/message_label.h
+CC = gcc
+CC_FLAGS = -I./headers
+
+SOURCES = $(wildcard ./src/*.c)
+OBJECTS = $(SOURCES:.c=.o)
+DEPS = $(wildcard ./headers/*.h)
+EXEC = server
+
+$(EXEC): $(OBJECTS)
+	$(CC) -pthread $(OBJECTS) -o $(EXEC)
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
-
-server: src/clients_registry.o src/clients_handling.o src/LTE.o src/client_ping.o src/main.o
-	$(CC) -o server src/clients_registry.o src/clients_handling.o src/LTE.o src/client_ping.o src/main.o
+	$(CC) -c $(CC_FLAGS) $< -o $@
