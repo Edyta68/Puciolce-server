@@ -1,17 +1,20 @@
 #include "client_ping.h"
 
+pthread_t ping_thread;
+
 void *ping_clients(void* unused)
 {
-  while(true){
-    time_t current_time = clock();
+  //pthread_detach(pthread_self());
+  time_t current_time;
+  double expected_interval;
+  while(server_running){
+    current_time = clock();
     message_label ping_request_label = {
       message_type: msg_ping_request,
       message_length: 0
     };
     for(int i = 0; i < connected_clients_number; i++)
     {
-
-      double expected_interval;
       if(connected_clients[i].ping.low_battery_level){
         expected_interval = PING_INTERVAL_LOW_BATTERY;
       }
@@ -30,4 +33,5 @@ void *ping_clients(void* unused)
 
     usleep(PING_SELEEP_TIME*1000);//converting to microseconds
   }
+  pthread_exit(NULL);
 }

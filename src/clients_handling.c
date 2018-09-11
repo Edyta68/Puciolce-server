@@ -1,5 +1,7 @@
 #include "../headers/clients_handling.h"
 
+bool server_running = true;
+
 int make_socket_non_blocking (int sfd)
 {
   int flags, s;
@@ -151,7 +153,7 @@ void server_run(int argc, char** argv)
   //server and client addressess
   unsigned short PORT = atoi(argv[1]);
 	struct sockaddr_in server_address;
-  int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  server_socket = socket(AF_INET, SOCK_STREAM, 0);
 
 
   if(server_socket == -1){
@@ -192,14 +194,23 @@ void server_run(int argc, char** argv)
      exit(EXIT_FAILURE);
    }
 
-   pthread_t ping_thread;
+   //changing progam action for SIG_INT
+   sigset_t blocking_sig_set;
+   sigemptyset(&blocking_sig_set);
+   struct sigaction sig_int_action;
+   sig_int_action.sa_handler = action_SIGINT;
+   sig_int_action.sa_mask = blocking_sig_set;
+   sig_int_action.sa_flags = 0;
+   sigaction(SIGINT, &sig_int_action, NULL);
+
+   //starting pinging thread
    int thread_error = pthread_create(&ping_thread, NULL,  ping_clients, NULL);
    if(thread_error){
        fprintf(stderr,"Error - pthread_create() return code: %d\n",thread_error);
        exit(EXIT_FAILURE);
    }
 
-   while(1) {
+   while(server_running) {
       nfds = epoll_wait(epollfd, events, MAX_EVENTS, 0);
       if (nfds == -1) {
           perror("epoll_wait");
@@ -223,7 +234,28 @@ void server_run(int argc, char** argv)
       //ping_clients();
   }
 
+  server_stop();
+
   pthread_join( ping_thread, NULL);
   printf("Server down\n");
   close(server_socket);
+}
+
+void server_stop(){
+  int thread_error = pthread_join( ping_thread, NULL);
+  for(int i = 0; i < connected_clients_number; i++)
+  {
+    close_connection(connected_clients[i].temp_c_rnti);
+  }
+  close(server_socket);
+  printf("\n------------------------------------------\n");
+  if(thread_error != 0){
+    perror("pthread");
+  }
+  printf("Server down\n");
+  exit(EXIT_SUCCESS);
+}
+
+void action_SIGINT(int signal){
+  server_running = false;
 }
