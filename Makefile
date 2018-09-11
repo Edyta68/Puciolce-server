@@ -7,7 +7,7 @@ DEPS = $(wildcard ./headers/*.h)
 EXEC = server
 
 $(EXEC): $(OBJECTS)
-	$(CC) -pthread $(OBJECTS) -o $(EXEC)
+	$(CC) $(OBJECTS) -lpthread -o $(EXEC)
 
 %.o: %.c $(DEPS)
 	$(CC) -c $(CC_FLAGS) $< -o $@
