@@ -10,6 +10,7 @@ void *ping_clients(void* unused)
     };
     for(int i = 0; i < connected_clients_number; i++)
     {
+
       double expected_interval;
       if(connected_clients[i].ping.low_battery_level){
         expected_interval = PING_INTERVAL_LOW_BATTERY;
@@ -19,7 +20,10 @@ void *ping_clients(void* unused)
       }
       if((double)(current_time - connected_clients[i].ping.last_action_time)/CLOCKS_PER_SEC*1000.f >= expected_interval){
         write(connected_clients[i].temp_c_rnti, &ping_request_label, sizeof(ping_request_label));
-        printf("Pinged client with fd: %d\n", connected_clients[i].temp_c_rnti);
+        printf("------------------------------------------\n");
+        printf("SENDING PING REQUEST\n");
+        printf("Client fd: %d\n", connected_clients[i].temp_c_rnti);
+        printf("Ping interval: %.0fms\n", expected_interval);
         connected_clients[i].ping.last_action_time = clock();
       }
     }

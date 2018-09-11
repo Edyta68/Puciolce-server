@@ -58,7 +58,9 @@ void handle_new_connection(int server_socket){
   }
   make_socket_non_blocking(client_socket);
 
-  printf("New connection with fd: %d\n", client_socket);
+  printf("------------------------------------------\n");
+  printf("OPENING NEW CONNECTION\n");
+  printf("Client fd: %d\n", client_socket);
   //return;
   //handle LTE Random Access
   int lte_result = 0;
@@ -66,32 +68,36 @@ void handle_new_connection(int server_socket){
   RandomAccessPreamble client_preamble = {};
   lte_result = lte_random_access_procedure(client_socket, &client_preamble);
   if(lte_result == ERR_LTE_READ_TIMEOUT){
-    printf("Client not responding. Random Access Procedure aborted.\n");
+    printf("Error: Client not responding.\n");
+    printf("Status: Random Access Procedure aborted.\n");
     close_connection(client_socket);
     return;
   }
   else if (lte_result == ERR_LTE_DATA_MISMATCH){
-    printf("Mismatch in expected and received message label. Random Access Procedure aborted.\n");
+    printf("Error: Mismatch in expected and received message label.\n");
+    printf("Status: Random Access Procedure aborted.\n");
     close_connection(client_socket);
     return;
   }
-  printf("Clients cyclic prefix: '%c'\n", client_preamble.cyclic_prefix);
+  printf("Cyclic prefix: %d\n", client_preamble.cyclic_prefix);
   add_connected_client(client_socket, client_preamble.sequence);
 
   //handle LTE RRC Connection Establishment
   RRC_Connection_Request connection_request = {};
   lte_result = lte_rrc_connection_establishment(client_socket, &connection_request);
   if(lte_result == ERR_LTE_READ_TIMEOUT){
-    printf("Client not responding. Random Access Procedure aborted.\n");
+    printf("Error: Client not responding.\n");
+    printf("Status: RRC Connection Establishment refused.\n");
     close_connection(client_socket);
     return;
   }
   else if(lte_result == ERR_LTE_DATA_MISMATCH){
-    printf("Mismatch in expected and received c-rnti. RRC Connection Establishment refused.\n");
+    printf("Error: Mismatch in expected and received c-rnti.\n");
+    printf("Status: RRC Connection Establishment refused.\n");
     close_connection(client_socket);
     return;
   }
-  printf("RRC Connection Establishment succeeded\n");
+  printf("Status: RRC Connection Establishment succeeded\n");
 
   //int client = get_connected_client(client_socket);
   //connected_clients[client].ping.last_time_action = clock();
@@ -107,8 +113,10 @@ void handle_new_connection(int server_socket){
 }
 
 void close_connection(int client_socket){
+  printf("------------------------------------------\n");
+  printf("CLOSING CONNECTION\n");
   epoll_ctl(epollfd, EPOLL_CTL_DEL, client_socket, NULL);
-  printf("Closing connection with fd: %d\n", client_socket);
+  printf("Cient fd: %d\n", client_socket);
   del_connected_client(client_socket);
   printf("Current connected clients number: %d\n", connected_clients_number);
   close (client_socket);
@@ -124,14 +132,17 @@ void handle_client_input(int client_socket){
   }
   //printf("Type_no: %d\n", received_mesage_label.message_type);
   if(received_mesage_label.message_type == msg_ping_request){
-    printf("--------- Message from client %d ----------\n", client_socket);
-    printf("Type: ping_request\n");
     printf("------------------------------------------\n");
+    printf("RECEIVED VALID MESSAGE\n");
+    printf("Client fd: %d\n", client_socket);
+    printf("Type: ping_request\n");
+    printf("Action: none\n");
   }
   else if(received_mesage_label.message_type == msg_ping_response){
-    printf("--------- Message from client %d ----------\n", client_socket);
-    printf("Type: ping_response\n");
     printf("------------------------------------------\n");
+    printf("RECEIVED VALID MESSAGE\n");
+    printf("Client fd: %d\n", client_socket);
+    printf("Type: ping_response\n");
   }
 }
 
