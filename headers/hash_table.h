@@ -24,6 +24,5 @@ unsigned int compute_Hash(const Hash_Table *table, const int key);  //hash funct
 void iter_Hash(const Hash_Table *table, void (*func)(int key, void *value));  // run function on every value in table
 void *lookup_Hash(Hash_Table *table, int key);  //Show value in table using key
 void delete_value(Hash_Table *table, int key);  //delete value from table using key
-void print_node(Hash_Table *table, int key);
 
 #endif // HASH_TABLE_H_

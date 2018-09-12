@@ -120,14 +120,3 @@ void delete_value(Hash_Table *table, int key)
         entry = entry->next;
     }
 }
-
-void print_node(Hash_Table *table, int key)
-{
-    unsigned int n = compute_Hash(table, key);
-    struct Hash_value *entry = table->Table[n];
-
-    while(entry) {
-        printf("%d -> %s\n", entry->key, entry->value);
-        entry = entry->next;
-    }
-}
