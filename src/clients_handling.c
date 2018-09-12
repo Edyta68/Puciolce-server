@@ -166,7 +166,7 @@ void server_run(int argc, char** argv)
   unsigned short PORT = atoi(argv[1]);
 	struct sockaddr_in server_address;
   server_socket = socket(AF_INET, SOCK_STREAM, 0);
-
+  initialize_table();
 
   if(server_socket == -1){
     perror("socket");
@@ -255,16 +255,14 @@ void server_run(int argc, char** argv)
 
 void server_stop(){
   int thread_error = pthread_join( ping_thread, NULL);
-  for(int i = 0; i < connected_clients_number; i++)
-  {
-    close_connection(connected_clients[i].temp_c_rnti);
-  }
+  take_action_hash(connected_clients,close_connection);
   close(server_socket);
   printf("\n------------------------------------------\n");
   if(thread_error != 0){
     perror("pthread");
   }
   printf("Server down\n");
+  delete_Hash(connected_clients);
   exit(EXIT_SUCCESS);
 }
 

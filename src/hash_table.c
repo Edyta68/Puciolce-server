@@ -1,20 +1,22 @@
 #include "hash_table.h"
 
-#define NEW(T) (T*) malloc(sizeof(T))
-#define NEWARRAY(T, N) (T*) calloc((N), sizeof(T))
-
 unsigned int compute_Hash(const Hash_Table *table, const int key)
 {
-    return (key < table->size) ? key : (key % table->size);
+    if(table->size == 0)
+    printf("ZERO\n");
+    if(key < table->size)
+      return key;
+    else
+      return key % table->size;
 }
 
 Hash_Table *create_Hash(unsigned int size)
 {
-    Hash_Table *h_table = NEW(struct Hash_Table);
+    Hash_Table *h_table = calloc(sizeof(Hash_Table), 1);
 
     if(h_table)
     {
-        h_table->Table = malloc(sizeof(Hash_value) * size);
+        h_table->Table = calloc(sizeof(Hash_value), size);
 
         if(!h_table->Table)
         {
@@ -48,9 +50,9 @@ void delete_Hash(Hash_Table *table)
 
 int add_Hash(Hash_Table *table, int key, void *value)
 {
-    unsigned int n;
-    Hash_value *entry = malloc(sizeof(Hash_value));
-    Hash_value *entries;
+    unsigned int n = 0;
+    Hash_value *entry = calloc(sizeof(Hash_value), 1);
+    Hash_value *entries = NULL;
 
     if(entry)
     {
@@ -74,14 +76,26 @@ int add_Hash(Hash_Table *table, int key, void *value)
 
 void iter_Hash(const Hash_Table *table, void (*func)(int key, void *value))
 {
-    unsigned int i;
-    struct Hash_value *entry;
+    unsigned int i = 0;
+    struct Hash_value *entry = NULL;
 
-    for( i = 0; i < table->size; i++) {
+    for( i; i < table->size; i++) {
         for(entry = table->Table[i]; entry; entry = entry->next) {
             func(entry->key,entry->value);
         }
     }
+}
+
+void take_action_hash(const Hash_Table *table, void (*func)(int key))
+{
+  unsigned int i = 0;
+  struct Hash_value *entry = NULL;
+
+  for( i = 0; i < table->size; i++) {
+      for(entry = table->Table[i]; entry; entry = entry->next) {
+          func(entry->key);
+      }
+  }
 }
 
 void *lookup_Hash(Hash_Table *table, int key)
@@ -98,7 +112,7 @@ void *lookup_Hash(Hash_Table *table, int key)
     return entry ? entry->value : NULL;
 }
 
-void delete_value(Hash_Table *table, int key)
+void delete_value_hash(Hash_Table *table, int key)
 {
     unsigned int n = compute_Hash(table, key);
     struct Hash_value *entry = table->Table[n];

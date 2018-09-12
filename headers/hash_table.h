@@ -23,6 +23,7 @@ int add_Hash(Hash_Table *table, int key, void *value);  //add new element to tab
 unsigned int compute_Hash(const Hash_Table *table, const int key);  //hash function
 void iter_Hash(const Hash_Table *table, void (*func)(int key, void *value));  // run function on every value in table
 void *lookup_Hash(Hash_Table *table, int key);  //Show value in table using key
-void delete_value(Hash_Table *table, int key);  //delete value from table using key
+void delete_value_hash(Hash_Table *table, int key);  //delete value from table using key
+void take_action_hash(const Hash_Table *table, void (*func)(int key));
 
 #endif // HASH_TABLE_H_

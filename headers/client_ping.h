@@ -19,3 +19,4 @@
 extern pthread_t ping_thread;
 
 void *ping_clients(void *unused);
+void ping_client(int temp_c_rnti, void *Client);
