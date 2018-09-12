@@ -1,5 +1,6 @@
 CC = gcc
 CC_FLAGS = -I./headers
+#CFLAGS = -Wall -g
 
 SOURCES = $(wildcard ./src/*.c)
 OBJECTS = $(SOURCES:.c=.o)
@@ -11,3 +12,6 @@ $(EXEC): $(OBJECTS)
 
 %.o: %.c $(DEPS)
 	$(CC) -c $(CC_FLAGS) $< -o $@
+
+valgrind:
+	valgrind ./server $(PORT)

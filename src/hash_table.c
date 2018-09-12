@@ -14,7 +14,7 @@ Hash_Table *create_Hash(unsigned int size)
 
     if(h_table)
     {
-        h_table->Table = NEWARRAY(struct Hash_value, size);
+        h_table->Table = malloc(sizeof(Hash_value) * size);
 
         if(!h_table->Table)
         {
