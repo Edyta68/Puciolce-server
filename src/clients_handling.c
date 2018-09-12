@@ -151,7 +151,7 @@ void handle_client_input(int client_socket){
     printf("Action: reading ping data\n");
   }
   else if(received_mesage_label.message_type == msg_ping_response){
-    char ping_data[PING_DATA_SIZE];
+    char ping_data[PING_DATA_SIZE] = {0};
     read(client_socket, ping_data, PING_DATA_SIZE);
     printf("------------------------------------------\n");
     printf("RECEIVED VALID MESSAGE\n");

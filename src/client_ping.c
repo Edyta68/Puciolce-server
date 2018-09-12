@@ -11,7 +11,7 @@ void *ping_clients(void* unused)
     message_type: msg_ping_request,
     message_length: 0
   };
-  char ping_data[PING_DATA_SIZE];
+  char ping_data[PING_DATA_SIZE] = {0};
   while(server_running){
     current_time = clock();
     for(int i = 0; i < connected_clients_number; i++)

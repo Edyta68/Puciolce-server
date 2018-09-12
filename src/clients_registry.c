@@ -22,7 +22,7 @@ int add_connected_client(int temp_c_rnti, Sequence sequence){
     }
   }
   connected_clients[connected_clients_number].ping.low_battery_level = false;
-  connected_clients[connected_clients_number].ping.last_action_time = clock();
+  connected_clients[connected_clients_number].ping.last_action_time = (clock_t)0;
   connected_clients[connected_clients_number].temp_c_rnti = temp_c_rnti;
   connected_clients[connected_clients_number++].sequence = sequence;
 
