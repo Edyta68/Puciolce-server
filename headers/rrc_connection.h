@@ -154,3 +154,10 @@ typedef struct RRC_connection_Setup {
   Uplink_Power_Control_Dedicated UPC_Dedicatede;
 }RRC_connection_Setup;
 // END:Setup
+// Complete
+typedef struct RRC_Connection_Setup_Complete
+{
+	char plmn[7];				 // Public Land Mobile Network ID ([MCC][MNC])
+	char dedicated_info_nas[64]; // Octets carrying NAS Hex message
+} RRC_Connection_Setup_Complete;
+// END:Complete 

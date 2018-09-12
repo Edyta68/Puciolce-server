@@ -6,6 +6,7 @@ typedef enum Message_Type
 	msg_random_access_response,
 	msg_rrc_connection_request,
 	msg_rrc_connection_setup,
+  msg_rrc_connection_setup_complete,
 	msg_ping_request,
 	msg_ping_response,
 	msg_ue_shutdown,

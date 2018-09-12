@@ -99,10 +99,24 @@ void handle_new_connection(int server_socket){
     close_connection(client_socket);
     return;
   }
-  printf("Status: RRC Connection Establishment succeeded\n");
 
-  //int client = get_connected_client(client_socket);
-  //connected_clients[client].ping.last_time_action = clock();
+  //read LTE DRX configuration
+  DRX_Config drx_config = {};
+  lte_result = lte_drx_config(client_socket, &drx_config);
+  if(lte_result == ERR_LTE_READ_TIMEOUT){
+    printf("Error: Client not responding. Unable to read DRX configuration.\n");
+    printf("Status: RRC Connection Establishment refused.\n");
+    close_connection(client_socket);
+    return;
+  }
+  else if(lte_result == ERR_LTE_DATA_MISMATCH){
+    printf("Error: Missing DRX configuration.\n");
+    printf("Status: RRC Connection Establishment refused.\n");
+    close_connection(client_socket);
+    return;
+  }
+
+  printf("Status: RRC Connection Establishment succeeded\n");
 
   //register new socket to epoll
   ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
@@ -126,21 +140,19 @@ void close_connection(int client_socket){
 
 void handle_client_input(int client_socket){
   message_label received_mesage_label = {};
-  //printf("--------- Message from client %d ----------\n", client_socket);
   if(read_data_from_socket(client_socket, &received_mesage_label, sizeof(received_mesage_label)) < sizeof(received_mesage_label)){
-    //printf("Error reading message label: size mismatch\n");
-    //printf("------------------------------------------\n");
     return;
   }
-  //printf("Type_no: %d\n", received_mesage_label.message_type);
   if(received_mesage_label.message_type == msg_ping_request){
     printf("------------------------------------------\n");
     printf("RECEIVED VALID MESSAGE\n");
     printf("Client fd: %d\n", client_socket);
     printf("Type: ping_request\n");
-    printf("Action: none\n");
+    printf("Action: reading ping data\n");
   }
   else if(received_mesage_label.message_type == msg_ping_response){
+    char ping_data[PING_DATA_SIZE];
+    read(client_socket, ping_data, PING_DATA_SIZE);
     printf("------------------------------------------\n");
     printf("RECEIVED VALID MESSAGE\n");
     printf("Client fd: %d\n", client_socket);

@@ -57,5 +57,36 @@ int lte_rrc_connection_establishment(int client_socket, RRC_Connection_Request *
   connection_setup.c_rnti = connection_request->c_rnti;
   write(client_socket, &connection_setup, sizeof(connection_setup));
 
+
+  //receive setup_complete
+  RRC_Connection_Setup_Complete setup_complete = {};
+  message_label complete_label = {};
+
+  if(read_data_from_socket(client_socket, &complete_label, sizeof(complete_label)) < sizeof(complete_label)){
+    return ERR_LTE_READ_TIMEOUT;
+  }
+  if(complete_label.message_type != msg_rrc_connection_setup_complete || complete_label.message_length != sizeof(setup_complete)){
+    return ERR_LTE_DATA_MISMATCH;
+  }
+
+  if(read_data_from_socket(client_socket, &setup_complete, sizeof(setup_complete)) < sizeof(setup_complete)){
+    return ERR_LTE_READ_TIMEOUT;
+  }
+
+  return 0;
+}
+
+int lte_drx_config(int client_socket, DRX_Config *config){
+  message_label config_label = {};
+  if(read_data_from_socket(client_socket, &config_label, sizeof(config_label)) < sizeof(config_label)){
+    return ERR_LTE_READ_TIMEOUT;
+  }
+  if(config_label.message_type != msg_drx_config){ //|| config_label.message_length != sizeof(*config)){
+    return ERR_LTE_DATA_MISMATCH;
+  }
+  if(read_data_from_socket(client_socket, config, sizeof(*config)) < sizeof(*config)){
+    return ERR_LTE_READ_TIMEOUT;
+  }
+
   return 0;
 }
