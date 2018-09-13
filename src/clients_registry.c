@@ -16,7 +16,8 @@ int add_connected_client(int temp_c_rnti, Sequence sequence) {
   connected_client *client = malloc(sizeof(connected_client));
 
   client->ping.low_battery_level = false;
-  client->ping.last_action_time = (clock_t)0;
+  client->ping.last_request_time = (clock_t)0;
+  client->ping.last_response_time = clock();
   client->temp_c_rnti = temp_c_rnti;
   client->sequence = sequence;
 

@@ -26,13 +26,12 @@ void ping_client(int temp_c_rnti, void *Client) {
   }
 
   current_time = clock();
-  if((double)(current_time - client->ping.last_action_time)/CLOCKS_PER_SEC*1000.f >= expected_interval){
+  if((double)(current_time - client->ping.last_request_time)/CLOCKS_PER_SEC*1000.f >= expected_interval){
     message_label ping_request_label = {
       message_type: msg_ping_request,
-      message_length: 0
+      message_length: 64
     };
     char ping_data[PING_DATA_SIZE] = {0};
-
 
     write(client->temp_c_rnti, &ping_request_label, sizeof(ping_request_label));
     write(client->temp_c_rnti, ping_data, PING_DATA_SIZE);
@@ -40,6 +39,13 @@ void ping_client(int temp_c_rnti, void *Client) {
     printf("SENDING PING REQUEST\n");
     printf("Client fd: %d\n", client->temp_c_rnti);
     printf("Ping interval: %.0fms\n", expected_interval);
-    client->ping.last_action_time = clock();
+    client->ping.last_request_time = clock();
+  }
+
+  if((double)(client->ping.last_request_time - client->ping.last_response_time)/CLOCKS_PER_SEC*1000.f >= PING_MAX_RESPONSE_TIME){
+    printf("------------------------------------------\n");
+    printf("CLIENT NOT RESPONDIGN TO PINGS\n");
+    printf("Client fd: %d\n", client->temp_c_rnti);
+    close_connection(temp_c_rnti);
   }
 }

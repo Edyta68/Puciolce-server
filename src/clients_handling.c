@@ -152,6 +152,8 @@ void handle_client_input(int client_socket){
   else if(received_message_label.message_type == msg_ping_response){
     char ping_data[PING_DATA_SIZE] = {0};
     read(client_socket, ping_data, PING_DATA_SIZE);
+    connected_client *client = get_connected_client(client_socket);
+    client->ping.last_response_time = clock();
     printf("Type: msg_ping_response\n");
   }
   else if(received_message_label.message_type == msg_battery_critcal){
@@ -245,16 +247,14 @@ void server_run(int argc, char** argv)
             handle_new_connection(server_socket);
           }
           else {
-
-              if(events[n].events & EPOLLIN){
-                handle_client_input(events[n].data.fd);
-              }
-              else if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
-                close_connection(events[n].data.fd);
-              }
+            if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
+              close_connection(events[n].data.fd);
+            }
+            else if(events[n].events & EPOLLIN){
+              handle_client_input(events[n].data.fd);
+            }
           }
       }
-
       //ping_clients();
   }
 
