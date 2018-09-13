@@ -139,35 +139,35 @@ void close_connection(int client_socket){
 }
 
 void handle_client_input(int client_socket){
-  message_label received_mesage_label = {};
-  if(read_data_from_socket(client_socket, &received_mesage_label, sizeof(received_mesage_label)) < sizeof(received_mesage_label)){
+  message_label received_message_label = {};
+  if(read_data_from_socket(client_socket, &received_message_label, sizeof(received_message_label)) < sizeof(received_message_label)){
     return;
   }
-  if(received_mesage_label.message_type == msg_ping_request){
-    printf("------------------------------------------\n");
-    printf("RECEIVED VALID MESSAGE\n");
-    printf("Client fd: %d\n", client_socket);
-    printf("Type: ping_request\n");
-    printf("Action: reading ping data\n");
+  printf("------------------------------------------\n");
+  printf("RECEIVED VALID MESSAGE\n");
+  printf("Client fd: %d\n", client_socket);
+  if(received_message_label.message_type == msg_ping_request){
+    printf("Type: msg_ping_request\n");
   }
-  else if(received_mesage_label.message_type == msg_ping_response){
+  else if(received_message_label.message_type == msg_ping_response){
     char ping_data[PING_DATA_SIZE] = {0};
     read(client_socket, ping_data, PING_DATA_SIZE);
-    printf("------------------------------------------\n");
-    printf("RECEIVED VALID MESSAGE\n");
-    printf("Client fd: %d\n", client_socket);
-    printf("Type: ping_response\n");
+    printf("Type: msg_ping_response\n");
   }
-  else if(received_mesage_label.message_type == msg_battery_critcal){
-    char *battery_data = malloc(received_mesage_label.message_length);
-    read(client_socket, battery_data, received_mesage_label.message_length);
-    printf("------------------------------------------\n");
-    printf("RECEIVED VALID MESSAGE\n");
-    printf("Client fd: %d\n", client_socket);
+  else if(received_message_label.message_type == msg_battery_critcal){
+    char *battery_data = malloc(received_message_label.message_length);
+    read(client_socket, battery_data, received_message_label.message_length);
     printf("Type: msg_battery_critcal\n");
     connected_client *client = get_connected_client(client_socket);
     client->ping.low_battery_level = true;
     free(battery_data);
+  }
+  else if(received_message_label.message_type == msg_ue_shutdown){
+    printf("Type: msg_ue_shutdown\n");
+    close_connection(client_socket);
+  }
+  else{
+    printf("Error: unhandled type\n");
   }
 }
 
@@ -245,11 +245,12 @@ void server_run(int argc, char** argv)
             handle_new_connection(server_socket);
           }
           else {
-              if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
-                close_connection(events[n].data.fd);
-              }
-              else if(events[n].events & EPOLLIN){
+
+              if(events[n].events & EPOLLIN){
                 handle_client_input(events[n].data.fd);
+              }
+              else if(events[n].events & (EPOLLRDHUP | EPOLLHUP)){
+                close_connection(events[n].data.fd);
               }
           }
       }
@@ -266,7 +267,7 @@ void server_stop(){
   int thread_error = pthread_join( ping_thread, NULL);
   take_action_hash(connected_clients,close_connection);
   close(server_socket);
-  printf("\n------------------------------------------\n");
+  printf("------------------------------------------\n");
   if(thread_error != 0){
     perror("pthread");
   }
@@ -276,5 +277,6 @@ void server_stop(){
 }
 
 void action_SIGINT(int signal){
+  printf("\n");
   server_running = false;
 }
