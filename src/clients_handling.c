@@ -158,6 +158,17 @@ void handle_client_input(int client_socket){
     printf("Client fd: %d\n", client_socket);
     printf("Type: ping_response\n");
   }
+  else if(received_mesage_label.message_type == msg_battery_critcal){
+    char *battery_data = malloc(received_mesage_label.message_length);
+    read(client_socket, battery_data, received_mesage_label.message_length);
+    printf("------------------------------------------\n");
+    printf("RECEIVED VALID MESSAGE\n");
+    printf("Client fd: %d\n", client_socket);
+    printf("Type: msg_battery_critcal\n");
+    connected_client *client = get_connected_client(client_socket);
+    client->ping.low_battery_level = true;
+    free(battery_data);
+  }
 }
 
 void server_run(int argc, char** argv)
