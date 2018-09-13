@@ -248,9 +248,7 @@ void server_run(int argc, char** argv)
 
   server_stop();
 
-  pthread_join( ping_thread, NULL);
-  printf("Server down\n");
-  close(server_socket);
+  return;
 }
 
 void server_stop(){
@@ -263,7 +261,7 @@ void server_stop(){
   }
   printf("Server down\n");
   delete_Hash(connected_clients);
-  exit(EXIT_SUCCESS);
+  //exit(EXIT_SUCCESS);
 }
 
 void action_SIGINT(int signal){

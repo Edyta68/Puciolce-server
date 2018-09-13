@@ -90,11 +90,13 @@ void take_action_hash(const Hash_Table *table, void (*func)(int key))
 {
   unsigned int i = 0;
   struct Hash_value *entry = NULL;
-
   for( i = 0; i < table->size; i++) {
-      for(entry = table->Table[i]; entry; entry = entry->next) {
-          func(entry->key);
-      }
+    entry = table->Table[i];
+    while(entry){
+      Hash_value *next_entry = entry->next;
+      func(entry->key);
+      entry = next_entry;
+    }
   }
 }
 
