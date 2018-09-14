@@ -1,7 +1,8 @@
-#include "client_ping.h"
+#include "service_ping.h"
 
 pthread_t ping_thread;
 
+/*
 void *ping_clients(void* unused)
 {
   //pthread_detach(pthread_self());
@@ -11,12 +12,11 @@ void *ping_clients(void* unused)
   }
   pthread_exit(NULL);
 }
-
-void ping_client(int temp_c_rnti, void *Client) {
+*/
+bool ping_client(connected_client *client) {
 
   time_t current_time;
   double expected_interval;
-  connected_client *client = (connected_client *)Client;
 
   if(client->ping.low_battery_level){
     expected_interval = PING_INTERVAL_LOW_BATTERY;
@@ -46,6 +46,9 @@ void ping_client(int temp_c_rnti, void *Client) {
     printf("------------------------------------------\n");
     printf("CLIENT NOT RESPONDIGN TO PINGS\n");
     printf("Client fd: %d\n", client->temp_c_rnti);
-    close_connection(temp_c_rnti);
+    close_connection(client->temp_c_rnti);
+    return true;
   }
+
+  return false;
 }

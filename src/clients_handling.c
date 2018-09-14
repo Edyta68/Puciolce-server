@@ -82,7 +82,6 @@ void handle_new_connection(int server_socket){
     return;
   }
   printf("Cyclic prefix: %d\n", client_preamble.cyclic_prefix);
-  add_connected_client(client_socket, client_preamble.sequence);
 
   //handle LTE RRC Connection Establishment
   RRC_Connection_Request connection_request = {};
@@ -118,6 +117,8 @@ void handle_new_connection(int server_socket){
 
   printf("Status: RRC Connection Establishment succeeded\n");
 
+  add_connected_client(client_socket, client_preamble.sequence);
+
   //register new socket to epoll
   ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
   ev.data.fd = client_socket;
@@ -150,26 +151,35 @@ void handle_client_input(int client_socket){
     printf("Type: msg_ping_request\n");
   }
   else if(received_message_label.message_type == msg_ping_response){
-    char ping_data[PING_DATA_SIZE] = {0};
-    read(client_socket, ping_data, PING_DATA_SIZE);
+    printf("Type: msg_ping_response\n");
+      printf("Size: %d\n", received_message_label.message_length);
+    char *ping_data = malloc(received_message_label.message_length);
+    read(client_socket, ping_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
     client->ping.last_response_time = clock();
-    printf("Type: msg_ping_response\n");
+    free(ping_data);
   }
   else if(received_message_label.message_type == msg_battery_critcal){
+    printf("Type: msg_battery_critcal\n");
+    printf("Size: %d\n", received_message_label.message_length);
     char *battery_data = malloc(received_message_label.message_length);
     read(client_socket, battery_data, received_message_label.message_length);
-    printf("Type: msg_battery_critcal\n");
     connected_client *client = get_connected_client(client_socket);
     client->ping.low_battery_level = true;
     free(battery_data);
   }
+  else if(received_message_label.message_type == msg_request_download){
+    printf("Type: msg_request_download\n");
+    printf("Size: %d\n", received_message_label.message_length);
+    start_download(get_connected_client(client_socket));
+  }
   else if(received_message_label.message_type == msg_ue_shutdown){
     printf("Type: msg_ue_shutdown\n");
+    printf("Size: %d\n", received_message_label.message_length);
     close_connection(client_socket);
   }
   else{
-    printf("Error: unhandled type\n");
+    printf("Error: unhandled type - id=%d\n", received_message_label.message_type);
   }
 }
 
@@ -228,8 +238,8 @@ void server_run(int argc, char** argv)
    sig_int_action.sa_flags = 0;
    sigaction(SIGINT, &sig_int_action, NULL);
 
-   //starting pinging thread
-   int thread_error = pthread_create(&ping_thread, NULL,  ping_clients, NULL);
+   //starting services thread
+   int thread_error = pthread_create(&services_thread, NULL,  run_services, NULL);
    if(thread_error){
        fprintf(stderr,"Error - pthread_create() return code: %d\n",thread_error);
        exit(EXIT_FAILURE);
@@ -264,7 +274,7 @@ void server_run(int argc, char** argv)
 }
 
 void server_stop(){
-  int thread_error = pthread_join( ping_thread, NULL);
+  int thread_error = pthread_join( services_thread, NULL);
   take_action_hash(connected_clients,close_connection);
   close(server_socket);
   printf("------------------------------------------\n");

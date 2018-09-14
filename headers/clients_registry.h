@@ -2,10 +2,11 @@
 #define SERVER_DATA_H_
 
 #include <stdio.h>
+#include <time.h>
 
 #include "preambles.h"
-#include <time.h>
 #include "hash_table.h"
+#include "download.h"
 
 #define MAX_CLIENTS 256
 
@@ -21,10 +22,18 @@ typedef struct ping_info {
   clock_t last_response_time;
 } ping_info;
 
+typedef struct Download_Status{
+  bool in_progress;
+  Download_Info info;
+  int current_packet_index;
+  int file_descriptor;
+}Download_Status;
+
 typedef struct connected_client{
   int temp_c_rnti;
   Sequence sequence;
   ping_info ping;
+  Download_Status download;
 }connected_client;
 
 extern Hash_Table *connected_clients;

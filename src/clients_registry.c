@@ -13,13 +13,16 @@ connected_client *get_connected_client(int temp_c_rnti) {
 }
 
 int add_connected_client(int temp_c_rnti, Sequence sequence) {
-  connected_client *client = malloc(sizeof(connected_client));
+  connected_client *client = calloc(sizeof(connected_client), 1);
 
   client->ping.low_battery_level = false;
   client->ping.last_request_time = (clock_t)0;
   client->ping.last_response_time = clock();
   client->temp_c_rnti = temp_c_rnti;
   client->sequence = sequence;
+  client->download.in_progress = false;
+  client->download.current_packet_index = 0;
+  client->download.file_descriptor = -1;
 
   add_Hash(connected_clients, temp_c_rnti, client);
   connected_clients_number++;

@@ -11,7 +11,7 @@ typedef enum Message_Type
 	msg_ping_response,
 	msg_ue_shutdown,
 	msg_drx_config,
-	msg_battery_critcal
+	msg_battery_critcal,
 	msg_request_download,
 	msg_download_info,
 	msg_download_packet
