@@ -40,8 +40,6 @@ int read_data_from_socket(int client_socket, void *buffer, int size);
 void handle_new_connection(int server_socket);
 void close_connection(int client_socket);
 void handle_client_input(int fd);
-void server_run(int argc, char** argv);
-void server_stop();
-void action_SIGINT(int signal);
+
 
 #endif

@@ -15,13 +15,16 @@ bool handle_client_download(connected_client *client){
     message_length: sizeof(Download_Packet)
   };
   write(client->temp_c_rnti, &response_label, sizeof(response_label));
-
   Download_Packet packet = {0};
   packet.packet_number = client->download.current_packet_index;
   packet.data_size = read(client->download.file_descriptor, packet.data, DOWNLOAD_PACKET_SIZE);
   printf("Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
-
+  char* data = malloc(DOWNLOAD_PACKET_SIZE+1);
+  memcpy(data, packet.data, DOWNLOAD_PACKET_SIZE);
+  data[DOWNLOAD_PACKET_SIZE] = '\0';
+  printf("Packet data: '%s'\n", data);
   write(client->temp_c_rnti, &packet, sizeof(packet));
+  free(data);
 
   if(++client->download.current_packet_index >= client->download.info.number_of_packets){
     close(client->download.file_descriptor);

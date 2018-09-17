@@ -1,4 +1,4 @@
-#include "../headers/clients_handling.h"
+#include "server.h"
 
 int main(int argc, char** argv){
 
@@ -7,7 +7,7 @@ int main(int argc, char** argv){
     exit(EXIT_FAILURE);
   }
 
-  server_run(argc, argv);
+  server_run(atoi(argv[1]));
 
   return 0;
 }
