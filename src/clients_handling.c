@@ -62,60 +62,107 @@ void handle_new_connection(int server_socket){
   printf("OPENING NEW CONNECTION\n");
   printf("Client fd: %d\n", client_socket);
   //return;
-  //handle LTE Random Access
-  int lte_result = 0;
 
-  RandomAccessPreamble client_preamble = {};
-  lte_result = lte_random_access_procedure(client_socket, &client_preamble);
-  if(lte_result == ERR_LTE_READ_TIMEOUT){
+  message_label connection_label = {};
+  if(read_data_from_socket(client_socket, &connection_label, sizeof(connection_label)) < sizeof(connection_label)){
     printf("Error: Client not responding.\n");
-    printf("Status: Random Access Procedure aborted.\n");
-    close_connection(client_socket);
-    return;
-  }
-  else if (lte_result == ERR_LTE_DATA_MISMATCH){
-    printf("Error: Mismatch in expected and received message label.\n");
-    printf("Status: Random Access Procedure aborted.\n");
-    close_connection(client_socket);
-    return;
-  }
-  printf("Cyclic prefix: %d\n", client_preamble.cyclic_prefix);
-
-  //handle LTE RRC Connection Establishment
-  RRC_Connection_Request connection_request = {};
-  lte_result = lte_rrc_connection_establishment(client_socket, &connection_request);
-  if(lte_result == ERR_LTE_READ_TIMEOUT){
-    printf("Error: Client not responding.\n");
-    printf("Status: RRC Connection Establishment refused.\n");
-    close_connection(client_socket);
-    return;
-  }
-  else if(lte_result == ERR_LTE_DATA_MISMATCH){
-    printf("Error: Mismatch in expected and received c-rnti.\n");
-    printf("Status: RRC Connection Establishment refused.\n");
+    printf("Status: Connection procedure aborted.\n");
     close_connection(client_socket);
     return;
   }
 
-  //read LTE DRX configuration
-  DRX_Config drx_config = {};
-  lte_result = lte_drx_config(client_socket, &drx_config);
-  if(lte_result == ERR_LTE_READ_TIMEOUT){
-    printf("Error: Client not responding. Unable to read DRX configuration.\n");
-    printf("Status: RRC Connection Establishment refused.\n");
-    close_connection(client_socket);
-    return;
+  if(connection_label.message_type == msg_random_access_preamble){
+    //NEW CLIENT CONNECTING
+    if(connection_label.message_length != sizeof(RandomAccessPreamble)){
+      printf("Error: Mismatch in expected and received message label.\n");
+      printf("Status: Random Access Procedure aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
+    //handle LTE Random Access
+    int lte_result = 0;
+
+    RandomAccessPreamble client_preamble = {};
+    lte_result = lte_random_access_procedure(client_socket, &client_preamble);
+    if(lte_result == ERR_LTE_READ_TIMEOUT){
+      printf("Error: Client not responding.\n");
+      printf("Status: Random Access Procedure aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
+    else if (lte_result == ERR_LTE_DATA_MISMATCH){
+      printf("Error: Mismatch in expected and received message label.\n");
+      printf("Status: Random Access Procedure aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
+    printf("Cyclic prefix: %d\n", client_preamble.cyclic_prefix);
+
+    //handle LTE RRC Connection Establishment
+    RRC_Connection_Request connection_request = {};
+    RRC_Connection_Setup_Complete connection_setup_complete = {};
+    lte_result = lte_rrc_connection_establishment(client_socket, &connection_request);
+    if(lte_result == ERR_LTE_READ_TIMEOUT){
+      printf("Error: Client not responding.\n");
+      printf("Status: RRC Connection Establishment refused.\n");
+      close_connection(client_socket);
+      return;
+    }
+    else if(lte_result == ERR_LTE_DATA_MISMATCH){
+      printf("Error: Mismatch in expected and received c-rnti.\n");
+      printf("Status: RRC Connection Establishment refused.\n");
+      close_connection(client_socket);
+      return;
+    }
+
+    //read LTE DRX configuration
+    DRX_Config drx_config = {};
+    lte_result = lte_drx_config(client_socket, &drx_config);
+    if(lte_result == ERR_LTE_READ_TIMEOUT){
+      printf("Error: Client not responding. Unable to read DRX configuration.\n");
+      printf("Status: RRC Connection Establishment refused.\n");
+      close_connection(client_socket);
+      return;
+    }
+    else if(lte_result == ERR_LTE_DATA_MISMATCH){
+      printf("Error: Missing DRX configuration.\n");
+      printf("Status: RRC Connection Establishment refused.\n");
+      close_connection(client_socket);
+      return;
+    }
+
+    printf("Status: RRC Connection Establishment succeeded\n");
+
+    add_connected_client(client_socket, client_preamble.sequence);
   }
-  else if(lte_result == ERR_LTE_DATA_MISMATCH){
-    printf("Error: Missing DRX configuration.\n");
-    printf("Status: RRC Connection Establishment refused.\n");
-    close_connection(client_socket);
-    return;
+  else if(connection_label.message_type == msg_x2_server_connection_request){
+    //OTHER ENODEB CONNECTING
+    if(connection_label.message_length != sizeof(X2_Server_Info)){
+      printf("Error: Mismatch in expected and received message label.\n");
+      printf("Status: X2 Connection Establishment aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
+    int x2_result = x2_handle_server_connection(client_socket);
+    if(x2_result == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
+      printf("Status: X2 Connection Establishment succeeded.\n");
+    }
+    else if(x2_result == ERR_X2_OTHER_SERVER_CONNECTED){
+      printf("Error: Another server is allready connected.\n");
+      printf("Status: X2 Connection Establishment aborted.\n");
+      return;
+    }
+    else if(x2_result == ERR_X2_READ_TIMOUT){
+      printf("Error: Another server not responding.\n");
+      printf("Status: X2 Connection Establishment aborted.\n");
+      return;
+    }
+    else{
+      printf("Status: X2 Connection Establishment aborted.\n");
+      return;
+    }
   }
 
-  printf("Status: RRC Connection Establishment succeeded\n");
-
-  add_connected_client(client_socket, client_preamble.sequence);
 
   //register new socket to epoll
   ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;

@@ -1,15 +1,6 @@
 #include "../headers/LTE.h"
 
 int lte_random_access_procedure(int client_socket, RandomAccessPreamble *client_preamble){
-  message_label preamble_label = {};
-  if(read_data_from_socket(client_socket, &preamble_label, sizeof(preamble_label)) < sizeof(preamble_label)){
-    return ERR_LTE_READ_TIMEOUT;
-  }
-
-  if(preamble_label.message_type != msg_random_access_preamble || preamble_label.message_length != sizeof(*client_preamble)){
-    return ERR_LTE_DATA_MISMATCH;
-  }
-
   if(read_data_from_socket(client_socket, client_preamble, sizeof(*client_preamble)) < sizeof(*client_preamble)){
     return ERR_LTE_READ_TIMEOUT;
   }

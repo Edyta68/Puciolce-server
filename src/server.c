@@ -5,9 +5,16 @@ int nfds, epollfd;
 
 bool server_running = false;
 int server_socket = 0;
+X2_Server_Info server_info = {0};
 
 void server_run(unsigned short PORT, unsigned int options, unsigned short existing_server_port)
 {
+	//fill in server info
+	server_info.eNodeB_port = PORT;
+	server_info.address[0] = 127;
+	server_info.address[1] = 0;
+	server_info.address[2] = 0;
+	server_info.address[3] = 1;
   //server and client addressess
 	struct sockaddr_in server_address;
   server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -34,22 +41,25 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
 
 	//X2 server connection
 	if(options & SERVER_ALREADY_EXISTING){
-		other_server_port = existing_server_port;
-		server_address.sin_port = htons(other_server_port);
-		other_server_fd = socket(AF_INET, SOCK_STREAM, 0);
-		if(other_server_fd == -1){
-			perror("socket");
-			printf("Failed to create socket\n");
-			return;
+		other_server_info.eNodeB_port = existing_server_port;
+		memcpy(other_server_info.address, server_info.address, ADDRESS_LENGTH);
+		server_address.sin_port = htons(existing_server_port);
+		int x2_status = x2_request_server_connection(server_address);
+		if(x2_status == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
+			printf("X2 connection established\n");
+			other_server_connected = true;
 		}
-		if(connect(other_server_fd, (struct sockaddr*)&server_address, sizeof(server_address)) != -1) {
-			printf("Connected to exiting server\n");
-			if(write(other_server_fd, "Elo mordo", 10) > 0) {
-				printf("Udalo sie\n");
-			}
+		else if(x2_status == ERR_X2_OTHER_SERVER_CONNECTED){
+			printf("Error: another server is already connected. X2 connection establishment aborted.\n");
 		}
-		else{
-			printf("lipa\n");
+		else if(x2_status == ERR_X2_SOCKET_ERR){
+			printf("Error: unable to establish socket connection. X2 connection establishment aborted.\n");
+		}
+		else if(x2_status == ERR_X2_READ_TIMOUT){
+			printf("Error: existing server not responding. X2 connection establishment aborted.\n");
+		}
+		else if(x2_status == ERR_X2_DATA_MISMATCH){
+			printf("Error: received unexpeted data format. X2 connection establishment aborted.\n");
 		}
 	}
 
