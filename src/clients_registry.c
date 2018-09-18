@@ -36,6 +36,9 @@ int del_connected_client(int temp_c_rnti){
     return ERR_DEL_CC_NO_MATCH;
   }
   connected_client *client = (connected_client *)lookup_Hash(connected_clients, temp_c_rnti);
+  if(client == NULL){
+    return ERR_DEL_CC_NO_MATCH;
+  }
   delete_value_hash(connected_clients, temp_c_rnti);
   free(client);
   connected_clients_number--;

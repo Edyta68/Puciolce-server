@@ -4,7 +4,7 @@ int main(int argc, char** argv){
 
   int optret = 0, server_options = 0;
   opterr = 0;
-  char *existing_server_port;
+  char *existing_server_port = "0";
   while((optret = getopt(argc, argv, "lp:")) != -1){
     switch (optret){
       case 'l':
