@@ -34,7 +34,7 @@ int main(int argc, char** argv){
     printf("Connecting to existing server on port: %s\n", existing_server_port);
   }
 
-  server_run(atoi(argv[argc-1]), server_options);
+  server_run(atoi(argv[argc-1]), server_options, atoi(existing_server_port));
 
   return 0;
 }

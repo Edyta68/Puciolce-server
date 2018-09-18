@@ -14,7 +14,9 @@ typedef enum Message_Type
 	msg_battery_critcal,
 	msg_request_download,
 	msg_download_info,
-	msg_download_packet
+	msg_download_packet,
+	msg_x2_server_connection_request,
+	msg_x2_server_connection_response
 } Message_Type;
 
 typedef struct message_label

@@ -1,6 +1,12 @@
 #include "server.h"
 
-void server_run(unsigned short PORT, unsigned int options)
+struct epoll_event ev, events[EPOLL_MAX_EVENTS];
+int nfds, epollfd;
+
+bool server_running = false;
+int server_socket = 0;
+
+void server_run(unsigned short PORT, unsigned int options, unsigned short existing_server_port)
 {
   //server and client addressess
 	struct sockaddr_in server_address;
@@ -26,12 +32,34 @@ void server_run(unsigned short PORT, unsigned int options)
 
   printf("Server up\n");
 
+	//X2 server connection
+	if(options & SERVER_ALREADY_EXISTING){
+		other_server_port = existing_server_port;
+		server_address.sin_port = htons(other_server_port);
+		other_server_fd = socket(AF_INET, SOCK_STREAM, 0);
+		if(other_server_fd == -1){
+			perror("socket");
+			printf("Failed to create socket\n");
+			return;
+		}
+		if(connect(other_server_fd, (struct sockaddr*)&server_address, sizeof(server_address)) != -1) {
+			printf("Connected to exiting server\n");
+			if(write(other_server_fd, "Elo mordo", 10) > 0) {
+				printf("Udalo sie\n");
+			}
+		}
+		else{
+			printf("lipa\n");
+		}
+	}
+
   if(listen(server_socket, 5) == -1){
    perror("listen");
    exit(EXIT_FAILURE);
   }
 
   printf("Listening..\n");
+	server_running = true;
 
   epollfd = epoll_create1(0);
    if (epollfd == -1) {
@@ -62,7 +90,7 @@ void server_run(unsigned short PORT, unsigned int options)
    }
 
    while(server_running) {
-      nfds = epoll_wait(epollfd, events, MAX_EVENTS, 0);
+      nfds = epoll_wait(epollfd, events, EPOLL_MAX_EVENTS, 0);
       if (nfds == -1) {
           perror("epoll_wait");
           exit(EXIT_FAILURE);
@@ -81,7 +109,6 @@ void server_run(unsigned short PORT, unsigned int options)
             }
           }
       }
-      //ping_clients();
   }
 
   server_stop();

@@ -23,17 +23,10 @@
 #include "clients_registry.h"
 #include "LTE.h"
 #include "message_label.h"
+#include "server.h"
 
 #define MAX_MSG_LEN 256
-#define MAX_EVENTS 10
 #define MAX_READ_TIMEOUT_MS 1000.f
-
-//epoll
-struct epoll_event ev, events[MAX_EVENTS];
-int nfds, epollfd;
-
-int server_socket;
-extern bool server_running;
 
 int make_socket_non_blocking (int sfd);
 int read_data_from_socket(int client_socket, void *buffer, int size);

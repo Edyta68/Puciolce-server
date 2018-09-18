@@ -1,7 +1,5 @@
 #include "../headers/clients_handling.h"
 
-bool server_running = true;
-
 int make_socket_non_blocking (int sfd)
 {
   int flags, s;
