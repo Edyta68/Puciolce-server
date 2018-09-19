@@ -7,6 +7,7 @@
 #include "preambles.h"
 #include "hash_table.h"
 #include "download.h"
+#include "rrc_connection.h"
 
 #define MAX_CLIENTS 256
 
@@ -34,13 +35,16 @@ typedef struct connected_client{
   Sequence sequence;
   ping_info ping;
   Download_Status download;
+  RRC_Connection_Request connection_request;
+  RRC_Connection_Setup_Complete setup_complete;
+
 }connected_client;
 
 extern Hash_Table *connected_clients;
 extern int connected_clients_number;
 
 connected_client *get_connected_client(int temp_c_rnti);
-int add_connected_client(int temp_c_rnti, Sequence sequence);
+int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Request connection_request, RRC_Connection_Setup_Complete setup_complete);
 int del_connected_client(int temp_c_rnti);
 void initialize_table();
 

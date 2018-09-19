@@ -100,8 +100,8 @@ void handle_new_connection(int server_socket){
 
     //handle LTE RRC Connection Establishment
     RRC_Connection_Request connection_request = {};
-    RRC_Connection_Setup_Complete connection_setup_complete = {};
-    lte_result = lte_rrc_connection_establishment(client_socket, &connection_request);
+    RRC_Connection_Setup_Complete setup_complete = {};
+    lte_result = lte_rrc_connection_establishment(client_socket, &connection_request, &setup_complete);
     if(lte_result == ERR_LTE_READ_TIMEOUT){
       printf("Error: Client not responding.\n");
       printf("Status: RRC Connection Establishment refused.\n");
@@ -133,7 +133,7 @@ void handle_new_connection(int server_socket){
 
     printf("Status: RRC Connection Establishment succeeded\n");
 
-    add_connected_client(client_socket, client_preamble.sequence);
+    add_connected_client(client_socket, client_preamble.sequence, connection_request, setup_complete);
   }
   else if(connection_label.message_type == msg_x2_server_connection_request){
     //OTHER ENODEB CONNECTING

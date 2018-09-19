@@ -12,7 +12,7 @@ connected_client *get_connected_client(int temp_c_rnti) {
   return (connected_client *) lookup_Hash(connected_clients, temp_c_rnti);
 }
 
-int add_connected_client(int temp_c_rnti, Sequence sequence) {
+int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Request connection_request, RRC_Connection_Setup_Complete setup_complete) {
   connected_client *client = calloc(sizeof(connected_client), 1);
 
   client->ping.low_battery_level = false;
@@ -23,6 +23,9 @@ int add_connected_client(int temp_c_rnti, Sequence sequence) {
   client->download.in_progress = false;
   client->download.current_packet_index = 0;
   client->download.file_descriptor = -1;
+  client->connection_request = connection_request;
+  client->setup_complete = setup_complete;
+
 
   add_Hash(connected_clients, temp_c_rnti, client);
   connected_clients_number++;

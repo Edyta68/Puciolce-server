@@ -18,7 +18,7 @@
 #define ERR_LTE_DATA_MISMATCH -2
 
 int lte_random_access_procedure(int client_socket, RandomAccessPreamble *client_preamble);
-int lte_rrc_connection_establishment(int client_socket, RRC_Connection_Request *connection_request);
+int lte_rrc_connection_establishment(int client_socket, RRC_Connection_Request *connection_request, RRC_Connection_Setup_Complete *setup_complete);
 int lte_drx_config(int client_socket, DRX_Config *config);
 
 #endif
