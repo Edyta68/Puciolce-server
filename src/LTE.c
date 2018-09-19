@@ -63,7 +63,8 @@ int lte_rrc_connection_establishment(int client_socket, RRC_Connection_Request *
   if(read_data_from_socket(client_socket, setup_complete, sizeof(*setup_complete)) < sizeof(*setup_complete)){
     return ERR_LTE_READ_TIMEOUT;
   }
-
+  //sending info about other server_run
+  x2_send_server_info(client_socket);
   return 0;
 }
 

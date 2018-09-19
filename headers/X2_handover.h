@@ -16,6 +16,10 @@
 #define ERR_X2_SOCKET_ERR -2
 #define ERR_X2_READ_TIMOUT -3
 #define ERR_X2_DATA_MISMATCH -4
+#define ERR_SEND_SERVER_INFO -1
+#define SEND_SERVER_INFO_SUCCESS 1
+#define ERR_SEND_CLIENT_INFO -1
+#define SEND_CLIENT_INFO_SUCCESS 1
 
 typedef unsigned char byte;
 
@@ -25,15 +29,12 @@ typedef struct X2_Server_Info {
 }X2_Server_Info;
 
 
-typedef struct X2_Client_Info {
-    RRC_Connection_Request client_connection_request;
-    RRC_Connection_Setup_Complete client_setup_complete;
-    connected_client client;
-}X2_send_to_eNodeB;
-
 extern X2_Server_Info other_server_info;
 extern bool other_server_connected;
 extern int other_server_fd;
 
 int x2_request_server_connection(struct sockaddr_in server_address);
 int x2_handle_server_connection(int client_socket);
+int x2_send_server_info(int client_socket);
+int x2_send_client_info(connected_client *client_info);
+connected_client x2_recive_client_info();

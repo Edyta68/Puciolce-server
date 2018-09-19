@@ -218,6 +218,19 @@ void handle_client_input(int client_socket){
     printf("Size: %d\n", received_message_label.message_length);
     start_download(get_connected_client(client_socket));
   }
+  else if(received_message_label.message_type == msg_x2_send_client_info) {
+    printf("SENDING CLIENT INFO\n");
+    connected_client *client = get_connected_client(client_socket);
+    printf("CRNTI: %d\n",client->temp_c_rnti );
+    int i = x2_send_client_info(client);
+    printf("RETURN: %d\n", i);
+  }
+  else if(received_message_label.message_type == msg_x2_recive_client_info) {
+    printf("RECIVING CLIENT INFO\n");
+    connected_client client = {0};
+    client = x2_recive_client_info();
+    printf("%d\n",cl.temp_c_rnti );
+  }
   else if(received_message_label.message_type == msg_ue_shutdown){
     printf("Type: msg_ue_shutdown\n");
     printf("Size: %d\n", received_message_label.message_length);

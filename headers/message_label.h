@@ -15,6 +15,9 @@ typedef enum Message_Type
 	msg_request_download,
 	msg_download_info,
 	msg_download_packet,
+	msg_x2_send_client_info,
+	msg_x2_other_server_info,
+	msg_x2_recive_client_info,
 	msg_x2_server_connection_request,
 	msg_x2_server_connection_response
 } Message_Type;

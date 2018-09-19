@@ -57,3 +57,36 @@ int x2_handle_server_connection(int client_socket){
   other_server_fd = client_socket;
   return ERR_X2_SERVER_CONNECTION_ESTABLISHED;
 }
+
+int x2_send_server_info(int client_socket) {
+  message_label server_info_label = {
+    message_type: msg_x2_other_server_info,
+    message_length: sizeof(other_server_info)
+  };
+  write(client_socket, &server_info_label, sizeof(server_info_label));
+  if(write(client_socket, &other_server_info, sizeof(other_server_info)) > 0) {
+      return SEND_SERVER_INFO_SUCCESS;
+  }
+  return ERR_SEND_SERVER_INFO;
+}
+
+int x2_send_client_info(connected_client *client_info) {
+  printf("START\n");
+  message_label client_info_label = {
+    message_type: msg_x2_recive_client_info,
+    message_length: sizeof(*client_info)
+  };
+  write(other_server_fd, &client_info_label, sizeof(client_info_label));
+  printf("SENDING TO SERVER\n");
+  if(write(other_server_fd, client_info, sizeof(*client_info)) > 0) {
+    return SEND_CLIENT_INFO_SUCCESS;
+  }
+  return ERR_SEND_CLIENT_INFO;
+}
+
+connected_client x2_recive_client_info() {
+
+    connected_client client = {0};
+    read_data_from_socket(other_server_fd, &client, sizeof(connected_client));
+    return client;
+}
