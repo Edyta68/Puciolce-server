@@ -219,7 +219,6 @@ void handle_client_input(int client_socket){
   else if(received_message_label.message_type == msg_x2_handover_request) {
     printf("Type: msg_x2_handover_request\n");
     char *handover_data = malloc(received_message_label.message_length);
-    connected_client *client = get_connected_client(client_socket);
     if(read_data_from_socket(client_socket, handover_data,
     received_message_label.message_length)
       < sizeof(received_message_label.message_length) ){
@@ -229,9 +228,8 @@ void handle_client_input(int client_socket){
         return;
     }
     free(handover_data);
-    int send_status = x2_send_client_info(client);
-    write(client_socket, &send_status, sizeof(send_status));
-    if(send_status == X2_SUCCESS){
+    int handover_status = x2_handle_handover(client_socket);
+    if(handover_status == X2_SUCCESS){
       printf("Status: Starting handover procedure.\n");
     }
     else{

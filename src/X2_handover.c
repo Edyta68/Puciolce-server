@@ -82,17 +82,29 @@ int x2_send_server_info(int client_socket) {
   return ERR_SEND_SERVER_INFO;
 }
 
-int x2_send_client_info(connected_client *client_info) {
+int x2_handle_handover(int client_socket) {
+
+  connected_client *client = get_connected_client(client_socket);
+
   message_label client_info_label = {
     message_type: msg_x2_recive_client_info,
-    message_length: sizeof(*client_info)
+    message_length: sizeof(*client)
   };
   write(other_server_fd, &client_info_label, sizeof(client_info_label));
-
-  if(write(other_server_fd, client_info, sizeof(*client_info)) > 0) {
-    return X2_SUCCESS;
+  int send_status = 0;
+  if(write(other_server_fd, client, sizeof(*client)) > 0) {
+    send_status = X2_SUCCESS;
   }
-  return ERR_SEND_CLIENT_INFO;
+  else{
+    send_status = ERR_SEND_CLIENT_INFO;
+  }
+  message_label response_label = {
+    message_type: msg_x2_handover_response,
+    message_length: sizeof(send_status)
+  };
+  write(client_socket, &response_label, sizeof(response_label));
+  write(client_socket, &send_status, sizeof(send_status));
+  return send_status;
 }
 
 int x2_recive_client_info() {
