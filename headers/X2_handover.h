@@ -19,7 +19,7 @@
 #define ERR_SEND_SERVER_INFO -1
 #define SEND_SERVER_INFO_SUCCESS 1
 #define ERR_SEND_CLIENT_INFO -1
-#define SEND_CLIENT_INFO_SUCCESS 1
+#define X2_SUCCESS 0
 
 typedef unsigned char byte;
 
@@ -37,4 +37,4 @@ int x2_request_server_connection(struct sockaddr_in server_address);
 int x2_handle_server_connection(int client_socket);
 int x2_send_server_info(int client_socket);
 int x2_send_client_info(connected_client *client_info);
-connected_client x2_recive_client_info();
+int x2_recive_client_info();

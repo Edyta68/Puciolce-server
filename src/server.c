@@ -39,30 +39,6 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
 
   printf("Server up\n");
 
-	//X2 server connection
-	if(options & SERVER_ALREADY_EXISTING){
-		other_server_info.eNodeB_port = existing_server_port;
-		memcpy(other_server_info.address, server_info.address, ADDRESS_LENGTH);
-		server_address.sin_port = htons(existing_server_port);
-		int x2_status = x2_request_server_connection(server_address);
-		if(x2_status == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
-			printf("X2 connection established\n");
-			other_server_connected = true;
-		}
-		else if(x2_status == ERR_X2_OTHER_SERVER_CONNECTED){
-			printf("Error: another server is already connected. X2 connection establishment aborted.\n");
-		}
-		else if(x2_status == ERR_X2_SOCKET_ERR){
-			printf("Error: unable to establish socket connection. X2 connection establishment aborted.\n");
-		}
-		else if(x2_status == ERR_X2_READ_TIMOUT){
-			printf("Error: existing server not responding. X2 connection establishment aborted.\n");
-		}
-		else if(x2_status == ERR_X2_DATA_MISMATCH){
-			printf("Error: received unexpeted data format. X2 connection establishment aborted.\n");
-		}
-	}
-
   if(listen(server_socket, 5) == -1){
    perror("listen");
    exit(EXIT_FAILURE);
@@ -82,6 +58,31 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
      perror("epoll_ctl");
      exit(EXIT_FAILURE);
    }
+
+	 //X2 server connection
+	 if(options & SERVER_ALREADY_EXISTING){
+		 printf("Connecting to existing server on port: %d\n", existing_server_port);
+		 other_server_info.eNodeB_port = existing_server_port;
+		 memcpy(other_server_info.address, server_info.address, ADDRESS_LENGTH);
+		 server_address.sin_port = htons(existing_server_port);
+		 int x2_status = x2_request_server_connection(server_address);
+		 if(x2_status == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
+			 printf("X2 connection established\n");
+			 other_server_connected = true;
+		 }
+		 else if(x2_status == ERR_X2_OTHER_SERVER_CONNECTED){
+			 printf("Error: another server is already connected. X2 connection establishment aborted.\n");
+		 }
+		 else if(x2_status == ERR_X2_SOCKET_ERR){
+			 printf("Error: unable to establish socket connection. X2 connection establishment aborted.\n");
+		 }
+		 else if(x2_status == ERR_X2_READ_TIMOUT){
+			 printf("Error: existing server not responding. X2 connection establishment aborted.\n");
+		 }
+		 else if(x2_status == ERR_X2_DATA_MISMATCH){
+			 printf("Error: received unexpeted data format. X2 connection establishment aborted.\n");
+		 }
+	 }
 
    //changing progam action for SIG_INT
    sigset_t blocking_sig_set;

@@ -192,12 +192,12 @@ void handle_client_input(int client_socket){
   printf("------------------------------------------\n");
   printf("RECEIVED VALID MESSAGE\n");
   printf("Client fd: %d\n", client_socket);
+  printf("Size: %d\n", received_message_label.message_length);
   if(received_message_label.message_type == msg_ping_request){
     printf("Type: msg_ping_request\n");
   }
   else if(received_message_label.message_type == msg_ping_response){
     printf("Type: msg_ping_response\n");
-      printf("Size: %d\n", received_message_label.message_length);
     char *ping_data = malloc(received_message_label.message_length);
     read(client_socket, ping_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
@@ -206,7 +206,6 @@ void handle_client_input(int client_socket){
   }
   else if(received_message_label.message_type == msg_battery_critcal){
     printf("Type: msg_battery_critcal\n");
-    printf("Size: %d\n", received_message_label.message_length);
     char *battery_data = malloc(received_message_label.message_length);
     read(client_socket, battery_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
@@ -215,21 +214,31 @@ void handle_client_input(int client_socket){
   }
   else if(received_message_label.message_type == msg_request_download){
     printf("Type: msg_request_download\n");
-    printf("Size: %d\n", received_message_label.message_length);
     start_download(get_connected_client(client_socket));
   }
   else if(received_message_label.message_type == msg_x2_send_client_info) {
-    printf("SENDING CLIENT INFO\n");
+    printf("Type: msg_x2_send_client_info\n");
     connected_client *client = get_connected_client(client_socket);
-    printf("CRNTI: %d\n",client->temp_c_rnti );
-    int i = x2_send_client_info(client);
-    printf("RETURN: %d\n", i);
+    int send_status = x2_send_client_info(client);
+    if(send_status == X2_SUCCESS){
+      printf("Status: Sending client info to other eNodeB succeeded\n");
+    }
+    else{
+      printf("Error: unable to send client info\n");
+      printf("Status: Sending aborted\n");
+    }
   }
   else if(received_message_label.message_type == msg_x2_recive_client_info) {
-    printf("RECIVING CLIENT INFO\n");
+    printf("Type: msg_x2_recive_client_info\n");
     connected_client client = {0};
-    client = x2_recive_client_info();
-    printf("%d\n",cl.temp_c_rnti );
+    int receive_status = x2_recive_client_info();
+    if(receive_status == X2_SUCCESS){
+      printf("Status: Receiving client info from other eNodeB succeeded\n");
+    }
+    else if(receive_status == ERR_X2_READ_TIMOUT){
+      printf("Error: Other server not responding\n");
+      printf("Status: Receiving aborted\n");
+    }
   }
   else if(received_message_label.message_type == msg_ue_shutdown){
     printf("Type: msg_ue_shutdown\n");

@@ -6,6 +6,7 @@ int other_server_fd = 0;
 
 int x2_request_server_connection(struct sockaddr_in server_address){
   other_server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
   if(other_server_fd == -1){
     return ERR_X2_SOCKET_ERR;
   }
@@ -14,6 +15,7 @@ int x2_request_server_connection(struct sockaddr_in server_address){
       message_type: msg_x2_server_connection_request,
       message_length: sizeof(other_server_info)
     };
+    make_socket_non_blocking(other_server_fd);
     write(other_server_fd, &request_label, sizeof(request_label));
     write(other_server_fd, &server_info, sizeof(server_info));
 
@@ -28,6 +30,16 @@ int x2_request_server_connection(struct sockaddr_in server_address){
     if(read_data_from_socket(other_server_fd, &response_status, sizeof(response_status)) < sizeof(response_status)){
       return ERR_X2_READ_TIMOUT;
     }
+
+    //register new socket to epoll
+    ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
+    ev.data.fd = other_server_fd;
+    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, other_server_fd,
+                &ev) == -1) {
+        perror("epoll_ctl");
+        exit(EXIT_FAILURE);
+    }
+
     return response_status;
   }
   else{
@@ -71,22 +83,23 @@ int x2_send_server_info(int client_socket) {
 }
 
 int x2_send_client_info(connected_client *client_info) {
-  printf("START\n");
   message_label client_info_label = {
     message_type: msg_x2_recive_client_info,
     message_length: sizeof(*client_info)
   };
   write(other_server_fd, &client_info_label, sizeof(client_info_label));
-  printf("SENDING TO SERVER\n");
+
   if(write(other_server_fd, client_info, sizeof(*client_info)) > 0) {
-    return SEND_CLIENT_INFO_SUCCESS;
+    return X2_SUCCESS;
   }
   return ERR_SEND_CLIENT_INFO;
 }
 
-connected_client x2_recive_client_info() {
+int x2_recive_client_info() {
 
     connected_client client = {0};
-    read_data_from_socket(other_server_fd, &client, sizeof(connected_client));
-    return client;
+    if(read_data_from_socket(other_server_fd, &client, sizeof(connected_client)) < sizeof(connected_client)){
+      return ERR_X2_READ_TIMOUT;
+    }
+    return X2_SUCCESS;
 }
