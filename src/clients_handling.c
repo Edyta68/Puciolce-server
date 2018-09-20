@@ -216,16 +216,26 @@ void handle_client_input(int client_socket){
     printf("Type: msg_request_download\n");
     start_download(get_connected_client(client_socket));
   }
-  else if(received_message_label.message_type == msg_x2_send_client_info) {
-    printf("Type: msg_x2_send_client_info\n");
+  else if(received_message_label.message_type == msg_x2_handover_request) {
+    printf("Type: msg_x2_handover_request\n");
+    char *handover_data = malloc(received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
+    if(read_data_from_socket(client_socket, handover_data,
+    received_message_label.message_length)
+      < sizeof(received_message_label.message_length) ){
+        printf("Error: Client not responding\n");
+        printf("Status: Handover aborted\n");
+        free(handover_data);
+        return;
+    }
+    free(handover_data);
     int send_status = x2_send_client_info(client);
     if(send_status == X2_SUCCESS){
       printf("Status: Sending client info to other eNodeB succeeded\n");
     }
     else{
-      printf("Error: unable to send client info\n");
-      printf("Status: Sending aborted\n");
+      printf("Error: Unable to send client info\n");
+      printf("Status: Handover aborted\n");
     }
   }
   else if(received_message_label.message_type == msg_x2_recive_client_info) {

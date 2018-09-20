@@ -44,7 +44,7 @@ bool ping_client(connected_client *client) {
 
   if((double)(client->ping.last_request_time - client->ping.last_response_time)/CLOCKS_PER_SEC*1000.f >= PING_MAX_RESPONSE_TIME){
     printf("------------------------------------------\n");
-    printf("CLIENT NOT RESPONDIGN TO PINGS\n");
+    printf("CLIENT NOT RESPONDING TO PINGS\n");
     printf("Client fd: %d\n", client->temp_c_rnti);
     close_connection(client->temp_c_rnti);
     return true;
