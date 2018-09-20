@@ -2,17 +2,6 @@
 
 pthread_t ping_thread;
 
-/*
-void *ping_clients(void* unused)
-{
-  //pthread_detach(pthread_self());
-  while(server_running){
-    iter_Hash(connected_clients, ping_client);
-    usleep(PING_SELEEP_TIME*1000);//converting to microseconds
-  }
-  pthread_exit(NULL);
-}
-*/
 bool ping_client(connected_client *client) {
 
   time_t current_time;
