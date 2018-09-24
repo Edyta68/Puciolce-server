@@ -71,6 +71,7 @@ int x2_handle_server_connection(int client_socket){
   write(client_socket, &x2_response, sizeof(x2_response));
   other_server_fd = client_socket;
   other_server_connected = true;
+  take_action_hash(connected_clients, (void (*)(int))x2_send_server_info);
   return ERR_X2_SERVER_CONNECTION_ESTABLISHED;
 }
 
