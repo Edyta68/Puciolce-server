@@ -34,6 +34,7 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
 
   if(bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address)) < 0){
     perror("bind");
+		server_stop();
     exit(EXIT_FAILURE);
   }
 
@@ -41,6 +42,7 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
 
   if(listen(server_socket, 5) == -1){
    perror("listen");
+	 server_stop();
    exit(EXIT_FAILURE);
   }
 
@@ -50,12 +52,14 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
   epollfd = epoll_create1(0);
    if (epollfd == -1) {
        perror("epoll_create1");
+			 server_stop();
        exit(EXIT_FAILURE);
    }
    ev.events = EPOLLIN;
    ev.data.fd = server_socket;
    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server_socket, &ev) == -1) {
      perror("epoll_ctl");
+		 server_stop();
      exit(EXIT_FAILURE);
    }
 
@@ -97,13 +101,15 @@ void server_run(unsigned short PORT, unsigned int options, unsigned short existi
    int thread_error = pthread_create(&services_thread, NULL,  run_services, NULL);
    if(thread_error){
        fprintf(stderr,"Error - pthread_create() return code: %d\n",thread_error);
-       exit(EXIT_FAILURE);
+			 server_stop();
+			 exit(EXIT_FAILURE);
    }
 
    while(server_running) {
       nfds = epoll_wait(epollfd, events, EPOLL_MAX_EVENTS, 0);
       if (nfds == -1) {
           perror("epoll_wait");
+					server_stop();
           exit(EXIT_FAILURE);
       }
 
