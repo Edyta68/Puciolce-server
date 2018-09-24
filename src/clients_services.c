@@ -16,4 +16,5 @@ void handle_client_services(int temp_c_rnti, void *client){
     return;
   }
   handle_client_download(client);
+  handle_measurment_control(client);
 }

@@ -8,6 +8,7 @@
 #include "hash_table.h"
 #include "download.h"
 #include "rrc_connection.h"
+#include "service_X2_handover.h"
 
 #define MAX_CLIENTS 256
 
@@ -16,6 +17,11 @@
 #define ERR_ADD_CC_ALREADY_CONNECTED -2
 #define ERR_GET_CC_NO_MATCH -1
 #define ERR_DEL_CC_NO_MATCH -1
+
+typedef struct X2_Measurment_Status_Info{
+    clock_t last_request_time;
+    int reported_signal; // in range 0 - 100
+}X2_Measurment_Status_Info;
 
 typedef struct ping_info {
   bool low_battery_level;
@@ -37,7 +43,7 @@ typedef struct connected_client{
   Download_Status download;
   RRC_Connection_Request connection_request;
   RRC_Connection_Setup_Complete setup_complete;
-
+  X2_Measurment_Status_Info measurment_status;
 }connected_client;
 
 extern Hash_Table *connected_clients;

@@ -216,25 +216,34 @@ void handle_client_input(int client_socket){
     printf("Type: msg_request_download\n");
     start_download(get_connected_client(client_socket));
   }
-  else if(received_message_label.message_type == msg_x2_handover_request) {
-    printf("Type: msg_x2_handover_request\n");
-    char *handover_data = malloc(received_message_label.message_length);
-    if(read_data_from_socket(client_socket, handover_data,
-    received_message_label.message_length)
-      < sizeof(received_message_label.message_length) ){
-        printf("Error: Client not responding.\n");
-        printf("Status: Handover aborted.\n");
-        free(handover_data);
-        return;
+  else if(received_message_label.message_type == msg_handover_measurment_report) {
+    printf("Type: msg_handover_measurment_report\n");
+    if(received_message_label.message_length != sizeof(int)){
+      printf("Error: Invalid message length.\n");
+      printf("Status: Measurment raport not handled\n");
+      return;
     }
-    free(handover_data);
-    int handover_status = x2_handle_handover(client_socket);
-    if(handover_status == X2_SUCCESS){
-      printf("Status: Starting handover procedure.\n");
+    int report_status = handle_measurment_raport(client_socket);
+    if(report_status == ERR_X2_READ_TIMOUT){
+      printf("Error: Client not responding.\n");
+      printf("Status: Measurment raport not handled\n");
+      return;
+    }
+    int reported_signal = get_connected_client(client_socket)
+    ->measurment_status.reported_signal;
+    printf("Reported signal: %d\n", reported_signal);
+    if(reported_signal <= X2_HANDOVER_THRESHOLD){
+      int handover_status = x2_handle_handover(client_socket);
+      if(handover_status == X2_SUCCESS){
+        printf("Status: Starting handover procedure.\n");
+      }
+      else{
+        printf("Error: Unable to send client info.\n");
+        printf("Status: Handover aborted.\n");
+      }
     }
     else{
-      printf("Error: Unable to send client info.\n");
-      printf("Status: Handover aborted.\n");
+      printf("Status: Handover not needed.\n");
     }
   }
   else if(received_message_label.message_type == msg_x2_recive_client_info) {

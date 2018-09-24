@@ -13,6 +13,8 @@
 #include "message_label.h"
 #include "download.h"
 
+typedef struct connected_client connected_client;
+
 //returns true if clients downloading is currently in progress
 bool handle_client_download(connected_client *client);
 void start_download(connected_client *client);

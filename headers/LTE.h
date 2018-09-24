@@ -11,7 +11,7 @@
 #include "clients_handling.h"
 #include "message_label.h"
 #include "drx_config.h"
-#include "X2_handover.h"
+#include "service_X2_handover.h"
 
 #define PACKET_SIZE 256
 

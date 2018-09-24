@@ -17,7 +17,7 @@
 #define PING_MAX_RESPONSE_TIME 10000.f //ms
 #define PING_DATA_SIZE 64 //bytes
 
-extern pthread_t ping_thread;
+typedef struct connected_client connected_client;
 
 void *ping_clients(void *unused);
 //returns true if client is not responding to pings => connection with

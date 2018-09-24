@@ -25,7 +25,8 @@ int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Requ
   client->download.file_descriptor = -1;
   client->connection_request = connection_request;
   client->setup_complete = setup_complete;
-
+  client->measurment_status.last_request_time = (clock_t)0;
+  client->measurment_status.reported_signal = 100;
 
   add_Hash(connected_clients, temp_c_rnti, client);
   connected_clients_number++;

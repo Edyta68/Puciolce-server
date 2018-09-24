@@ -1,7 +1,5 @@
 #include "service_ping.h"
 
-pthread_t ping_thread;
-
 bool ping_client(connected_client *client) {
 
   time_t current_time;

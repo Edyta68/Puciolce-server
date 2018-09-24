@@ -24,7 +24,7 @@
 #include "LTE.h"
 #include "message_label.h"
 #include "server.h"
-#include "X2_handover.h"
+#include "service_X2_handover.h"
 
 #define MAX_MSG_LEN 256
 #define MAX_READ_TIMEOUT_MS 1000.f

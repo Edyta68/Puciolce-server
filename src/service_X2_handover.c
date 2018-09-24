@@ -1,4 +1,4 @@
-#include "X2_handover.h"
+#include "service_X2_handover.h"
 
 X2_Server_Info other_server_info = {0};
 bool other_server_connected = false;
@@ -97,13 +97,15 @@ int x2_handle_handover(int client_socket) {
   }
   else{
     send_status = ERR_SEND_CLIENT_INFO;
+    return send_status;
   }
+  bool send_message = true;
   message_label response_label = {
-    message_type: msg_x2_handover_response,
-    message_length: sizeof(send_status)
+    message_type: msg_handover_start,
+    message_length: sizeof(send_message)
   };
   write(client_socket, &response_label, sizeof(response_label));
-  write(client_socket, &send_status, sizeof(send_status));
+  write(client_socket, &send_status, sizeof(send_message));
   return send_status;
 }
 
@@ -114,4 +116,33 @@ int x2_recive_client_info() {
       return ERR_X2_READ_TIMOUT;
     }
     return X2_SUCCESS;
+}
+
+bool handle_measurment_control(connected_client *client){
+  time_t current_time = clock();
+  if((double)(current_time - client->measurment_status.last_request_time)
+  /CLOCKS_PER_SEC*1000.f >= X2_MEASURMENT_CONTROL_INTERVAL){
+    unsigned char control_message = 'y';
+    message_label control_label = {
+      message_type: msg_handover_measurment_control,
+      message_length: sizeof(control_message)
+    };
+    write(client->temp_c_rnti, &control_label, sizeof(control_label));
+    write(client->temp_c_rnti, &control_message, sizeof(control_message));
+    client->measurment_status.last_request_time = clock();
+    printf("------------------------------------------\n");
+    printf("SENDING MEASURMENT CONTROL\n");
+    printf("Client fd: %d\n", client->temp_c_rnti);
+    return true;
+  }
+  return false;
+}
+
+int handle_measurment_raport(int client_socket){
+  int reported_signal = 0;
+  if(read_data_from_socket(client_socket, &reported_signal, sizeof(reported_signal)) < sizeof(reported_signal)){
+    return ERR_X2_READ_TIMOUT;
+  }
+  get_connected_client(client_socket)->measurment_status.reported_signal = reported_signal;
+  return X2_SUCCESS;
 }
