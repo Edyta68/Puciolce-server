@@ -177,6 +177,12 @@ void handle_new_connection(int server_socket){
       close_connection(client_socket);
       return;
     }
+    else if(reconnection_status == ERR_RECONNECTION_CLIENT_BUFFER_CLIENT_NOT_FOUND){
+      printf("Error: Received old c-rnti not present in reconnection client buffer.\n");
+      printf("Status: Reconnection procedure aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
     printf("Status: Reconnected client with old c-rnt '%d'.\n", reconnection_status);
   }
   else{

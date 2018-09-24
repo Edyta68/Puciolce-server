@@ -142,6 +142,7 @@ int x2_handle_client_reconnection(int client_socket){
   }
   add_reconnected_client(client_socket, &client_data);
   write(client_socket, &client_socket, sizeof(client_socket));
+  x2_send_server_info(client_socket);
   return old_c_rnti;
 }
 
