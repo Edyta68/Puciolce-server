@@ -217,7 +217,7 @@ void handle_client_input(int client_socket){
     return;
   }
   printf("------------------------------------------\n");
-  printf("RECEIVED VALID MESSAGE\n");
+  printf("RECEIVED MESSAGE\n");
   printf("Client fd: %d\n", client_socket);
   printf("Size: %d\n", received_message_label.message_length);
   if(received_message_label.message_type == msg_ping_request){
@@ -250,10 +250,6 @@ void handle_client_input(int client_socket){
       printf("Status: Measurment raport not handled\n");
       return;
     }
-    if(!other_server_connected){
-      printf("Status: Handover not possible. No other server available\n");
-      return;
-    }
     int report_status = handle_measurment_raport(client_socket);
     if(report_status == ERR_X2_READ_TIMOUT){
       printf("Error: Client not responding.\n");
@@ -264,6 +260,10 @@ void handle_client_input(int client_socket){
     ->measurment_status.reported_signal;
     printf("Reported signal: %d\n", reported_signal);
     if(reported_signal <= X2_HANDOVER_THRESHOLD){
+      if(!other_server_connected){
+        printf("Status: Handover not possible. No other server available\n");
+        return;
+      }
       int handover_status = x2_handle_handover(client_socket);
       if(handover_status == X2_SUCCESS){
         printf("Status: Starting handover procedure.\n");
@@ -296,6 +296,9 @@ void handle_client_input(int client_socket){
     close_connection(client_socket);
   }
   else{
-    printf("Error: unhandled type - id=%d\n", received_message_label.message_type);
+    unsigned char unhandled_data;
+    printf("Error: Unhandled type - id=%d\n", received_message_label.message_type);
+    printf("Status: Reading unhandled data.\n");
+    while(read(client_socket, &unhandled_data, 1)>0);
   }
 }

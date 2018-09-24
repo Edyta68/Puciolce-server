@@ -46,6 +46,12 @@ int add_reconnected_client(int temp_c_rnti, connected_client *client_data){
   new_client->ping.last_response_time = clock();
   new_client->measurment_status.last_request_time = (clock_t)0;
   new_client->measurment_status.reported_signal = 100;
+  if(new_client->download.in_progress){
+    int file_descriptor = open(new_client->download.info.filename,
+      O_RDONLY);
+    new_client->download.file_descriptor = file_descriptor;
+    lseek(file_descriptor, new_client->download.current_packet_index*DOWNLOAD_PACKET_SIZE, SEEK_SET);
+  }
   printf("Current connected clients number: %d\n", connected_clients_number);
   return connected_clients_number;
 }
