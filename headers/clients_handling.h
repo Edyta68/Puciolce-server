@@ -18,31 +18,22 @@
 #include <signal.h>
 #include <errno.h>
 
-#include "client_ping.h"
+#include "clients_services.h"
 #include "preambles.h"
 #include "clients_registry.h"
 #include "LTE.h"
 #include "message_label.h"
+#include "server.h"
+#include "service_X2_handover.h"
 
 #define MAX_MSG_LEN 256
-#define MAX_EVENTS 10
 #define MAX_READ_TIMEOUT_MS 1000.f
-
-
-//epoll
-struct epoll_event ev, events[MAX_EVENTS];
-int nfds, epollfd;
-
-int server_socket;
-extern bool server_running;
 
 int make_socket_non_blocking (int sfd);
 int read_data_from_socket(int client_socket, void *buffer, int size);
 void handle_new_connection(int server_socket);
 void close_connection(int client_socket);
 void handle_client_input(int fd);
-void server_run(int argc, char** argv);
-void server_stop();
-void action_SIGINT(int signal);
+
 
 #endif
