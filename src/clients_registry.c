@@ -35,6 +35,21 @@ int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Requ
   return connected_clients_number;
 }
 
+int add_reconnected_client(int temp_c_rnti, connected_client *client_data){
+  connected_client *new_client = calloc(sizeof(*client_data), 1);
+  memcpy(new_client, client_data, sizeof(*client_data));
+  add_Hash(connected_clients, temp_c_rnti, new_client);
+  connected_clients_number++;
+  new_client->temp_c_rnti = temp_c_rnti;
+  new_client->ping.low_battery_level = false;
+  new_client->ping.last_request_time = (clock_t)0;
+  new_client->ping.last_response_time = clock();
+  new_client->measurment_status.last_request_time = (clock_t)0;
+  new_client->measurment_status.reported_signal = 100;
+  printf("Current connected clients number: %d\n", connected_clients_number);
+  return connected_clients_number;
+}
+
 int del_connected_client(int temp_c_rnti){
   if(temp_c_rnti < 0) {
     return ERR_DEL_CC_NO_MATCH;

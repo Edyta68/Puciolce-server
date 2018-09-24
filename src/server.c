@@ -137,6 +137,7 @@ void server_stop(){
   }
   printf("Server down\n");
   delete_Hash(connected_clients);
+	free_reconnection_client_buffer();
   //exit(EXIT_SUCCESS);
 }
 

@@ -51,6 +51,7 @@ extern int connected_clients_number;
 
 connected_client *get_connected_client(int temp_c_rnti);
 int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Request connection_request, RRC_Connection_Setup_Complete setup_complete);
+int add_reconnected_client(int temp_c_rnti, connected_client *client_data);
 int del_connected_client(int temp_c_rnti);
 void initialize_table();
 

@@ -18,6 +18,8 @@ typedef enum Message_Type
     msg_handover_measurment_control,
     msg_handover_measurment_report,
     msg_handover_start,
+    msg_handover_client_reconnection,
+    msg_handover_client_reconnection_info,
     msg_x2_other_server_info,
     msg_x2_recive_client_info,
     msg_x2_server_connection_request,

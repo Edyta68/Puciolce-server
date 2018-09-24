@@ -162,8 +162,29 @@ void handle_new_connection(int server_socket){
       return;
     }
   }
-
-
+  else if(connection_label.message_type == msg_handover_client_reconnection){
+    //CLIENT HANDOVER RECONNECTION
+    if(connection_label.message_length != sizeof(int)){
+      printf("Error: Data mismatch.\n");
+      printf("Status: Reconnection procedure aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
+    int reconnection_status = x2_handle_client_reconnection(client_socket);
+    if(reconnection_status == ERR_X2_READ_TIMOUT){
+      printf("Error: Client not responding.\n");
+      printf("Status: Reconnection procedure aborted.\n");
+      close_connection(client_socket);
+      return;
+    }
+    printf("Status: Reconnected client with old c-rnt '%d'.\n", reconnection_status);
+  }
+  else{
+    printf("Error: Invalid message label.\n");
+    printf("Status: Connection procedure aborted.\n");
+    close_connection(client_socket);
+    return;
+  }
   //register new socket to epoll
   ev.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
   ev.data.fd = client_socket;
@@ -223,6 +244,10 @@ void handle_client_input(int client_socket){
       printf("Status: Measurment raport not handled\n");
       return;
     }
+    if(!other_server_connected){
+      printf("Status: Handover not possible. No other server available\n");
+      return;
+    }
     int report_status = handle_measurment_raport(client_socket);
     if(report_status == ERR_X2_READ_TIMOUT){
       printf("Error: Client not responding.\n");
@@ -236,6 +261,7 @@ void handle_client_input(int client_socket){
       int handover_status = x2_handle_handover(client_socket);
       if(handover_status == X2_SUCCESS){
         printf("Status: Starting handover procedure.\n");
+        close_connection(client_socket);
       }
       else{
         printf("Error: Unable to send client info.\n");
