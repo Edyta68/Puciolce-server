@@ -140,9 +140,9 @@ int x2_handle_client_reconnection(int client_socket){
     write(client_socket, &connection_error, sizeof(connection_error));
     return ERR_RECONNECTION_CLIENT_BUFFER_CLIENT_NOT_FOUND;
   }
-  add_reconnected_client(client_socket, &client_data);
   write(client_socket, &client_socket, sizeof(client_socket));
   x2_send_server_info(client_socket);
+  add_reconnected_client(client_socket, &client_data);
   return old_c_rnti;
 }
 
