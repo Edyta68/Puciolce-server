@@ -205,9 +205,22 @@ void close_connection(int client_socket){
   printf("------------------------------------------\n");
   printf("CLOSING CONNECTION\n");
   epoll_ctl(epollfd, EPOLL_CTL_DEL, client_socket, NULL);
-  printf("Cient fd: %d\n", client_socket);
-  del_connected_client(client_socket);
-  printf("Current connected clients number: %d\n", connected_clients_number);
+  if(client_socket == other_server_fd){
+    printf("Server fd: %d\n", client_socket);
+    printf("Status: Closed connection with other server. Informing clients.\n");
+    other_server_connected = false;
+    other_server_info.eNodeB_port = 0;
+    other_server_info.address[0] = 0;
+    other_server_info.address[1] = 0;
+    other_server_info.address[2] = 0;
+    other_server_info.address[3] = 0;
+    take_action_hash(connected_clients, (void (*)(int))x2_send_server_info);
+  }
+  else{
+    printf("Cient fd: %d\n", client_socket);
+    del_connected_client(client_socket);
+    printf("Current connected clients number: %d\n", connected_clients_number);
+  }
   close (client_socket);
 }
 
