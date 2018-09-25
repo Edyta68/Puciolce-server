@@ -145,6 +145,10 @@ void handle_new_connection(int server_socket){
     }
     int x2_result = x2_handle_server_connection(client_socket);
     if(x2_result == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
+      printf("Server address: %d.%d.%d.%d:%d\n",
+      other_server_info.address[0], other_server_info.address[1],
+      other_server_info.address[2], other_server_info.address[3],
+      other_server_info.eNodeB_port);
       printf("Status: X2 Connection Establishment succeeded.\n");
     }
     else if(x2_result == ERR_X2_OTHER_SERVER_CONNECTED){

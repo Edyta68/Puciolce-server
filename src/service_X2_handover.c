@@ -40,6 +40,7 @@ int x2_request_server_connection(struct sockaddr_in server_address){
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, other_server_fd,
                 &ev) == -1) {
         perror("epoll_ctl");
+        server_stop();
         exit(EXIT_FAILURE);
     }
 

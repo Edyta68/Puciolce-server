@@ -30,7 +30,7 @@ int main(int argc, char** argv){
     exit(EXIT_FAILURE);
   }
 
-  server_run(atoi(argv[argc-1]), server_options, atoi(existing_server_port));
+  server_run(argv[argc-1], server_options, existing_server_port);
 
   return 0;
 }
