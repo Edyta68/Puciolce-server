@@ -284,7 +284,7 @@ void handle_client_input(int client_socket){
       int handover_status = x2_handle_handover(client_socket);
       if(handover_status == X2_SUCCESS){
         printf("Status: Starting handover procedure.\n");
-        close_connection(client_socket);
+        //close_connection(client_socket);
       }
       else{
         printf("Error: Unable to send client info.\n");
