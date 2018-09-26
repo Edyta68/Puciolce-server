@@ -5,10 +5,10 @@ bool handle_client_download(connected_client *client){
     return false;
   }
 
-  printf("------------------------------------------\n");
-  printf("SENDING DOWNLOAD PACKET TO CLIENT\n");
-  printf("Client fd: %d\n", client->temp_c_rnti);
-  printf("File name: %s\n", client->download.info.filename);
+  fprintf(server_log_file, "------------------------------------------\n");
+  fprintf(server_log_file, "SENDING DOWNLOAD PACKET TO CLIENT\n");
+  fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+  fprintf(server_log_file, "File name: %s\n", client->download.info.filename);
 
   message_label response_label = {
     message_type: msg_download_packet,
@@ -18,35 +18,35 @@ bool handle_client_download(connected_client *client){
   Download_Packet packet = {0};
   packet.packet_number = client->download.current_packet_index;
   packet.data_size = read(client->download.file_descriptor, packet.data, DOWNLOAD_PACKET_SIZE);
-  printf("Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
+  fprintf(server_log_file, "Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
   char* data = malloc(DOWNLOAD_PACKET_SIZE+1);
   memcpy(data, packet.data, DOWNLOAD_PACKET_SIZE);
   data[DOWNLOAD_PACKET_SIZE] = '\0';
-  printf("Packet data: '%s'\n", data);
+  fprintf(server_log_file, "Packet data: '%s'\n", data);
   write(client->temp_c_rnti, &packet, sizeof(packet));
   free(data);
 
   if(++client->download.current_packet_index >= client->download.info.number_of_packets){
     close(client->download.file_descriptor);
     client->download.in_progress = false;
-    printf("Status: Closing download procedure\n");
+    fprintf(server_log_file, "Status: Closing download procedure\n");
   }
   else{
-    printf("Status: Download procedure in progress\n");
+    fprintf(server_log_file, "Status: Download procedure in progress\n");
   }
 
   return true;
 }
 
 void start_download(connected_client *client){
-  printf("------------------------------------------\n");
-  printf("STARTING DOWNLOAD PROCEDURE\n");
-  printf("Client fd: %d\n", client->temp_c_rnti);
+  fprintf(server_log_file, "------------------------------------------\n");
+  fprintf(server_log_file, "STARTING DOWNLOAD PROCEDURE\n");
+  fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
 
   Download_Request request = {0};
   if(read_data_from_socket(client->temp_c_rnti, &request, sizeof(request)) < sizeof(request)){
-    printf("Error: Failed to read download request message\n");
-    printf("Status: Aborted");
+    fprintf(server_log_file, "Error: Failed to read download request message\n");
+    fprintf(server_log_file, "Status: Aborted");
     return;
   }
 
@@ -57,18 +57,18 @@ void start_download(connected_client *client){
   write(client->temp_c_rnti, &response_label, sizeof(response_label));
 
   if(client->download.in_progress){
-    printf("Error: Downloading already in pogress\n");
-    printf("Status: Sending error message\n");
+    fprintf(server_log_file, "Error: Downloading already in pogress\n");
+    fprintf(server_log_file, "Status: Sending error message\n");
     write(client->temp_c_rnti, &client->download.info, sizeof(client->download.info));
     return;
   }
 
   strcpy(client->download.info.filename, request.filename);
-  printf("File name: %s\n", client->download.info.filename);
+  fprintf(server_log_file, "File name: %s\n", client->download.info.filename);
 
   if(access(request.filename, F_OK ) == -1){
-    printf("Error: No such file\n");
-    printf("Status: Sending error message\n");
+    fprintf(server_log_file, "Error: No such file\n");
+    fprintf(server_log_file, "Status: Sending error message\n");
     client->download.info.error_number = ERR_DOWNLOAD_FILE_NOT_FOUND;
     client->download.info.number_of_packets = 0;
     write(client->temp_c_rnti, &client->download.info, sizeof(client->download.info));
@@ -79,14 +79,14 @@ void start_download(connected_client *client){
   struct stat file_stat;
   stat(request.filename, &file_stat);
   int file_size = file_stat.st_size;
-  printf("File size: %d\n", file_size);
+  fprintf(server_log_file, "File size: %d\n", file_size);
 
   int packet_number = file_size/DOWNLOAD_PACKET_SIZE;
-  printf("'Packet number: %d\n", packet_number);
+  fprintf(server_log_file, "'Packet number: %d\n", packet_number);
   if(file_size%DOWNLOAD_PACKET_SIZE != 0){
     packet_number++;
   }
-  printf("Packet number: %d\n", packet_number);
+  fprintf(server_log_file, "Packet number: %d\n", packet_number);
   client->download.info.number_of_packets = packet_number;
   client->download.info.error_number = ERR_DOWNLOAD_NO_ERRORS;
   write(client->temp_c_rnti, &client->download.info, sizeof(client->download.info));
@@ -95,5 +95,5 @@ void start_download(connected_client *client){
   client->download.current_packet_index = 0;
   client->download.file_descriptor = file_descriptor;
 
-  printf("Status: Starting download procedure\n");
+  fprintf(server_log_file, "Status: Starting download procedure\n");
 }

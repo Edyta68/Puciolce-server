@@ -22,17 +22,17 @@ bool ping_client(connected_client *client) {
 
     write(client->temp_c_rnti, &ping_request_label, sizeof(ping_request_label));
     write(client->temp_c_rnti, ping_data, PING_DATA_SIZE);
-    printf("------------------------------------------\n");
-    printf("SENDING PING REQUEST\n");
-    printf("Client fd: %d\n", client->temp_c_rnti);
-    printf("Ping interval: %.0fms\n", expected_interval);
+    fprintf(server_log_file, "------------------------------------------\n");
+    fprintf(server_log_file, "SENDING PING REQUEST\n");
+    fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+    fprintf(server_log_file, "Ping interval: %.0fms\n", expected_interval);
     client->ping.last_request_time = clock();
   }
 
   if((double)(client->ping.last_request_time - client->ping.last_response_time)/CLOCKS_PER_SEC*1000.f >= PING_MAX_RESPONSE_TIME){
-    printf("------------------------------------------\n");
-    printf("CLIENT NOT RESPONDING TO PINGS\n");
-    printf("Client fd: %d\n", client->temp_c_rnti);
+    fprintf(server_log_file, "------------------------------------------\n");
+    fprintf(server_log_file, "CLIENT NOT RESPONDING TO PINGS\n");
+    fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
     close_connection(client->temp_c_rnti);
     return true;
   }

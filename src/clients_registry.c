@@ -31,7 +31,7 @@ int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Requ
   add_Hash(connected_clients, temp_c_rnti, client);
   connected_clients_number++;
 
-  printf("Current connected clients number: %d\n", connected_clients_number);
+  fprintf(server_log_file, "Current connected clients number: %d\n", connected_clients_number);
   return connected_clients_number;
 }
 
@@ -52,7 +52,7 @@ int add_reconnected_client(int temp_c_rnti, connected_client *client_data){
     new_client->download.file_descriptor = file_descriptor;
     lseek(file_descriptor, new_client->download.current_packet_index*DOWNLOAD_PACKET_SIZE, SEEK_SET);
   }
-  printf("Current connected clients number: %d\n", connected_clients_number);
+  fprintf(server_log_file, "Current connected clients number: %d\n", connected_clients_number);
   return connected_clients_number;
 }
 
