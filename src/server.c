@@ -5,22 +5,43 @@ int nfds, epollfd;
 
 bool server_running = false;
 int server_socket = 0;
+int server_options = 0;
+FILE *server_log_file = NULL;
 X2_Server_Info server_info = {0};
 
-void server_run(char *server_address, unsigned int options, char *existing_server_address)
+void server_run(char *server_address, unsigned int options, char *existing_server_address, char* log_file_name)
 {
+	server_options = options;
+	//initialize server_log_file to stdout
+	server_log_file = stdout;
+	if(server_options & SERVER_LOGS_TO_FILE){
+		FILE *logs_file = NULL;
+		if(server_options & SERVER_LOGS_APPEND){
+			logs_file = fopen(log_file_name, "a");
+		}else{
+			logs_file = fopen(log_file_name, "w");
+		}
+		if(logs_file == NULL){
+			fprintf(server_log_file, "Error 'accept': %m\n");
+			exit(EXIT_FAILURE);
+		}
+		else{
+			server_log_file = logs_file;
+		}
+	}
+
 	//server and client addressess
 	struct sockaddr_in addr_in;
 
 	//fill in server info
 	if(!server_fill_info_from_string(&server_info, &addr_in, server_address)){
-		printf("Creating server failed.\n");
+		fprintf(server_log_file, "Creating server failed.\n");
 		exit(EXIT_FAILURE);
 	}
 	server_socket = socket(AF_INET, SOCK_STREAM, 0);
   initialize_table();
   if(server_socket == -1){
-    perror("socket");
+		fprintf(server_log_file, "Error 'socket': %m\n");
 		server_stop();
     exit(EXIT_FAILURE);
   }
@@ -28,56 +49,56 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
   make_socket_non_blocking(server_socket);
 
   if(bind(server_socket, (struct sockaddr*)&addr_in, sizeof(addr_in)) < 0){
-    perror("bind");
+		fprintf(server_log_file, "Error 'bind': %m\n");
 		server_stop();
     exit(EXIT_FAILURE);
   }
 
-  printf("Server up\n");
+  fprintf(server_log_file, "Server up\n");
 
   if(listen(server_socket, 5) == -1){
-   perror("listen");
+	 fprintf(server_log_file, "Error 'listen': %m\n");
 	 server_stop();
    exit(EXIT_FAILURE);
   }
 
-  printf("Listening..\n");
+  fprintf(server_log_file, "Listening..\n");
 	server_running = true;
 
   epollfd = epoll_create1(0);
    if (epollfd == -1) {
-       perror("epoll_create1");
+			 fprintf(server_log_file, "Error 'epoll_create1': %m\n");
 			 server_stop();
        exit(EXIT_FAILURE);
    }
    ev.events = EPOLLIN;
    ev.data.fd = server_socket;
    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, server_socket, &ev) == -1) {
-     perror("epoll_ctl");
+		 fprintf(server_log_file, "Error 'epoll_ctl': %m\n");
 		 server_stop();
      exit(EXIT_FAILURE);
    }
 
 	 //X2 server connection
 	 if(options & SERVER_ALREADY_EXISTING && existing_server_address){
-		printf("Establishing X2 server connection.\n");
+		fprintf(server_log_file, "Establishing X2 server connection.\n");
 		if(server_fill_info_from_string(&other_server_info, &addr_in, existing_server_address)){
 		 	int x2_status = x2_request_server_connection(addr_in);
 		 	if(x2_status == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
-		 		printf("X2 connection established.\n");
+		 		fprintf(server_log_file, "X2 connection established.\n");
 		 		other_server_connected = true;
 		 	}
 		 	else if(x2_status == ERR_X2_OTHER_SERVER_CONNECTED){
-		 		printf("Error: another server is already connected. X2 connection establishment aborted.\n");
+		 		fprintf(server_log_file, "Error: another server is already connected. X2 connection establishment aborted.\n");
 		 	}
 		 	else if(x2_status == ERR_X2_SOCKET_ERR){
-		 		printf("Error: unable to establish socket connection. X2 connection establishment aborted.\n");
+		 		fprintf(server_log_file, "Error: unable to establish socket connection. X2 connection establishment aborted.\n");
 		 	}
 		 	else if(x2_status == ERR_X2_READ_TIMOUT){
-		 		printf("Error: existing server not responding. X2 connection establishment aborted.\n");
+		 		fprintf(server_log_file, "Error: existing server not responding. X2 connection establishment aborted.\n");
 		 	}
 		 	else if(x2_status == ERR_X2_DATA_MISMATCH){
-		 		printf("Error: received unexpeted data format. X2 connection establishment aborted.\n");
+		 		fprintf(server_log_file, "Error: received unexpeted data format. X2 connection establishment aborted.\n");
 		 	}
 		}
 	 }
@@ -94,7 +115,7 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
    //starting services thread
    int thread_error = pthread_create(&services_thread, NULL,  run_services, NULL);
    if(thread_error){
-       fprintf(stderr,"Error - pthread_create() return code: %d\n",thread_error);
+       fprintf(server_log_file, "Error - pthread_create() return code: %d\n",thread_error);
 			 server_stop();
 			 exit(EXIT_FAILURE);
    }
@@ -102,7 +123,7 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
    while(server_running) {
       nfds = epoll_wait(epollfd, events, EPOLL_MAX_EVENTS, 0);
       if (nfds == -1) {
-          perror("epoll_wait");
+					fprintf(server_log_file, "Error 'epoll_wait': %m\n");
 					server_stop();
           exit(EXIT_FAILURE);
       }
@@ -131,73 +152,54 @@ void server_stop(){
   int thread_error = pthread_join( services_thread, NULL);
   take_action_hash(connected_clients,close_connection);
   close(server_socket);
-  printf("------------------------------------------\n");
-  printf("Server down\n");
+  fprintf(server_log_file, "------------------------------------------\n");
+  fprintf(server_log_file, "Server down\n");
+	fprintf(server_log_file, "------------------------------------------\n\n\n");
   delete_Hash(connected_clients);
 	free_reconnection_client_buffer();
-  //exit(EXIT_SUCCESS);
-}
-/*
-void server_connect_to_existing(char *existing_server_address){
-	printf("Establishing X2 server connection.\n");
-	int x2_status = x2_request_server_connection(server_address);
-	if(x2_status == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
-		printf("X2 connection established\n");
-		other_server_connected = true;
-	}
-	else if(x2_status == ERR_X2_OTHER_SERVER_CONNECTED){
-		printf("Error: another server is already connected. X2 connection establishment aborted.\n");
-	}
-	else if(x2_status == ERR_X2_SOCKET_ERR){
-		printf("Error: unable to establish socket connection. X2 connection establishment aborted.\n");
-	}
-	else if(x2_status == ERR_X2_READ_TIMOUT){
-		printf("Error: existing server not responding. X2 connection establishment aborted.\n");
-	}
-	else if(x2_status == ERR_X2_DATA_MISMATCH){
-		printf("Error: received unexpeted data format. X2 connection establishment aborted.\n");
+	if(server_log_file != stdout){
+		fclose(server_log_file);
 	}
 }
-*/
 bool server_fill_info_from_string(X2_Server_Info *server_info, struct sockaddr_in *addr_in, char *server_address){
 	char server_ip[SERVER_IP_BUFFER_SIZE];
 	char server_port[SERVER_PORT_BUFFER_SIZE];
 	char *token = strtok(server_address, ":");
 	addr_in->sin_family = AF_INET;
 	if(!token){
-		printf("Error: Invalid address format. Valid format is: 'ip:port'.\n");
+		fprintf(server_log_file, "Error: Invalid address format. Valid format is: 'ip:port'.\n");
 		return false;
 	}
 	memcpy(server_ip, token, strlen(token)+1);
 	addr_in->sin_addr.s_addr = inet_addr(server_ip);
 	token = strtok(NULL, ":");
 	if(!token){
-		printf("Error: Invalid address format. Valid format is: 'ip:port'.\n");
+		fprintf(server_log_file, "Error: Invalid address format. Valid format is: 'ip:port'.\n");
 		return false;
 	}
 	memcpy(server_port, token, strlen(token)+1);
 	server_info->eNodeB_port = atoi(server_port);
 	token = strtok(server_ip, ".");
 	if(!token){
-		printf("Error: Invalid address format. Valid format is: 'ip:port'.\n");
+		fprintf(server_log_file, "Error: Invalid address format. Valid format is: 'ip:port'.\n");
 		return false;
 	}
 	server_info->address[0] = atoi(token);
 	token = strtok(NULL, ".");
 	if(!token){
-		printf("Error: Invalid address format. Valid format is: 'ip:port'.\n");
+		fprintf(server_log_file, "Error: Invalid address format. Valid format is: 'ip:port'.\n");
 		return false;
 	}
 	server_info->address[1] = atoi(token);
 	token = strtok(NULL, ".");
 	if(!token){
-		printf("Error: Invalid address format. Valid format is: 'ip:port'.\n");
+		fprintf(server_log_file, "Error: Invalid address format. Valid format is: 'ip:port'.\n");
 		return false;
 	}
 	server_info->address[2] = atoi(token);
 	token = strtok(NULL, ".");
 	if(!token){
-		printf("Error: Invalid address format. Valid format is: 'ip:port'.\n");
+		fprintf(server_log_file, "Error: Invalid address format. Valid format is: 'ip:port'.\n");
 		return false;
 	}
 	server_info->address[3] = atoi(token);
@@ -208,6 +210,6 @@ bool server_fill_info_from_string(X2_Server_Info *server_info, struct sockaddr_i
 }
 
 void action_SIGINT(int signal){
-  printf("\n");
+  fprintf(server_log_file, "\n");
   server_running = false;
 }
