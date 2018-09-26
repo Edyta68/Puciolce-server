@@ -9,7 +9,11 @@ int SendListOfFiles(int client_socket)
     int *len;
     int TableLength = 0;
     int Size = 0;
-    directory = opendir(DIRECTORY_PATH);
+    char directory_path[FOLDER_PATH_SIZE];
+    if(getcwd(directory_path, sizeof(directory_path)) == NULL)
+        return ERR_OPEN_DIR;
+    strcat(directory_path, DOWNLOAD_FOLDER);
+    directory = opendir(directory_path);
     if(directory) {
         while (( file = readdir(directory)) != NULL) {
             if (file->d_type == DT_REG)
