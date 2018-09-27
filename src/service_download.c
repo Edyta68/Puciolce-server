@@ -17,7 +17,7 @@ bool handle_client_download(connected_client *client){
   write(client->temp_c_rnti, &response_label, sizeof(response_label));
   Download_Packet packet = {0};
   packet.packet_number = client->download.current_packet_index;
-  packet.data_size = read(client->download.file_descriptor, packet.data, DOWNLOAD_PACKET_SIZE);
+  packet.data_size = fread(packet.data, 1, DOWNLOAD_PACKET_SIZE, client->download.file_descriptor);
   fprintf(server_log_file, "Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
   char* data = malloc(DOWNLOAD_PACKET_SIZE+1);
   memcpy(data, packet.data, DOWNLOAD_PACKET_SIZE);
@@ -27,7 +27,7 @@ bool handle_client_download(connected_client *client){
   free(data);
 
   if(++client->download.current_packet_index >= client->download.info.number_of_packets){
-    close(client->download.file_descriptor);
+    fclose(client->download.file_descriptor);
     client->download.in_progress = false;
     fprintf(server_log_file, "Status: Closing download procedure\n");
   }
@@ -82,7 +82,7 @@ void start_download(connected_client *client){
     free(file_path);
     return;
   }
-  int file_descriptor = open(file_path, O_RDONLY);
+  FILE *file_descriptor = fopen(file_path, "rb");
 
   struct stat file_stat;
   stat(file_path, &file_stat);

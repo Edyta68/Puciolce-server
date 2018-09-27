@@ -22,7 +22,7 @@ int add_connected_client(int temp_c_rnti, Sequence sequence, RRC_Connection_Requ
   client->sequence = sequence;
   client->download.in_progress = false;
   client->download.current_packet_index = 0;
-  client->download.file_descriptor = -1;
+  client->download.file_descriptor = NULL;
   client->connection_request = connection_request;
   client->setup_complete = setup_complete;
   client->measurment_status.last_request_time = (clock_t)0;
@@ -55,10 +55,10 @@ int add_reconnected_client(int temp_c_rnti, connected_client *client_data){
     strcpy(file_path, DOWNLOAD_FOLDER);
     strcat(file_path, new_client->download.info.filename);
 
-    int file_descriptor = open(file_path,
-      O_RDONLY);
+    FILE *file_descriptor = fopen(file_path,
+      "rb");
     new_client->download.file_descriptor = file_descriptor;
-    lseek(file_descriptor, new_client->download.current_packet_index*DOWNLOAD_PACKET_SIZE, SEEK_SET);
+    fseek(file_descriptor, new_client->download.current_packet_index*DOWNLOAD_PACKET_SIZE, SEEK_SET);
 
     free(file_path);
   }
@@ -74,6 +74,8 @@ int del_connected_client(int temp_c_rnti){
   if(client == NULL){
     return ERR_DEL_CC_NO_MATCH;
   }
+  if(client->download.in_progress)
+    fclose(client->download.file_descriptor);
   delete_value_hash(connected_clients, temp_c_rnti);
   free(client);
   connected_clients_number--;

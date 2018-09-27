@@ -33,7 +33,7 @@ typedef struct Download_Status{
   bool in_progress;
   Download_Info info;
   int current_packet_index;
-  int file_descriptor;
+  FILE *file_descriptor;
 }Download_Status;
 
 typedef struct connected_client{
