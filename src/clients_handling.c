@@ -7,7 +7,7 @@ int make_socket_non_blocking (int sfd)
   flags = fcntl (sfd, F_GETFL, 0);
   if (flags == -1)
     {
-      perror ("fcntl");
+      fprintf(server_log_file, "Error 'fcntl': %m\n");
       return -1;
     }
 
@@ -15,7 +15,7 @@ int make_socket_non_blocking (int sfd)
   s = fcntl (sfd, F_SETFL, flags);
   if (s == -1)
     {
-      perror ("fcntl");
+      fprintf(server_log_file, "Error 'fcntl': %m\n");
       return -1;
     }
 
@@ -53,20 +53,20 @@ void handle_new_connection(int server_socket){
   int client_socket = accept(server_socket,
                      (struct sockaddr *) &client_address, &client_address_len);
   if (client_socket == -1) {
-      perror("accept");
+      fprintf(server_log_file, "Error 'accept': %m\n");
       exit(EXIT_FAILURE);
   }
   make_socket_non_blocking(client_socket);
 
-  printf("------------------------------------------\n");
-  printf("OPENING NEW CONNECTION\n");
-  printf("Client fd: %d\n", client_socket);
+  fprintf(server_log_file, "------------------------------------------\n");
+  fprintf(server_log_file, "OPENING NEW CONNECTION\n");
+  fprintf(server_log_file, "Client fd: %d\n", client_socket);
   //return;
 
   message_label connection_label = {};
   if(read_data_from_socket(client_socket, &connection_label, sizeof(connection_label)) < sizeof(connection_label)){
-    printf("Error: Client not responding.\n");
-    printf("Status: Connection procedure aborted.\n");
+    fprintf(server_log_file, "Error: Client not responding.\n");
+    fprintf(server_log_file, "Status: Connection procedure aborted.\n");
     close_connection(client_socket);
     return;
   }
@@ -74,8 +74,8 @@ void handle_new_connection(int server_socket){
   if(connection_label.message_type == msg_random_access_preamble){
     //NEW CLIENT CONNECTING
     if(connection_label.message_length != sizeof(RandomAccessPreamble)){
-      printf("Error: Mismatch in expected and received message label.\n");
-      printf("Status: Random Access Procedure aborted.\n");
+      fprintf(server_log_file, "Error: Mismatch in expected and received message label.\n");
+      fprintf(server_log_file, "Status: Random Access Procedure aborted.\n");
       close_connection(client_socket);
       return;
     }
@@ -85,32 +85,32 @@ void handle_new_connection(int server_socket){
     RandomAccessPreamble client_preamble = {};
     lte_result = lte_random_access_procedure(client_socket, &client_preamble);
     if(lte_result == ERR_LTE_READ_TIMEOUT){
-      printf("Error: Client not responding.\n");
-      printf("Status: Random Access Procedure aborted.\n");
+      fprintf(server_log_file, "Error: Client not responding.\n");
+      fprintf(server_log_file, "Status: Random Access Procedure aborted.\n");
       close_connection(client_socket);
       return;
     }
     else if (lte_result == ERR_LTE_DATA_MISMATCH){
-      printf("Error: Mismatch in expected and received message label.\n");
-      printf("Status: Random Access Procedure aborted.\n");
+      fprintf(server_log_file, "Error: Mismatch in expected and received message label.\n");
+      fprintf(server_log_file, "Status: Random Access Procedure aborted.\n");
       close_connection(client_socket);
       return;
     }
-    printf("Cyclic prefix: %d\n", client_preamble.cyclic_prefix);
+    fprintf(server_log_file, "Cyclic prefix: %d\n", client_preamble.cyclic_prefix);
 
     //handle LTE RRC Connection Establishment
     RRC_Connection_Request connection_request = {};
     RRC_Connection_Setup_Complete setup_complete = {};
     lte_result = lte_rrc_connection_establishment(client_socket, &connection_request, &setup_complete);
     if(lte_result == ERR_LTE_READ_TIMEOUT){
-      printf("Error: Client not responding.\n");
-      printf("Status: RRC Connection Establishment refused.\n");
+      fprintf(server_log_file, "Error: Client not responding.\n");
+      fprintf(server_log_file, "Status: RRC Connection Establishment refused.\n");
       close_connection(client_socket);
       return;
     }
     else if(lte_result == ERR_LTE_DATA_MISMATCH){
-      printf("Error: Mismatch in expected and received c-rnti.\n");
-      printf("Status: RRC Connection Establishment refused.\n");
+      fprintf(server_log_file, "Error: Mismatch in expected and received c-rnti.\n");
+      fprintf(server_log_file, "Status: RRC Connection Establishment refused.\n");
       close_connection(client_socket);
       return;
     }
@@ -119,75 +119,79 @@ void handle_new_connection(int server_socket){
     DRX_Config drx_config = {};
     lte_result = lte_drx_config(client_socket, &drx_config);
     if(lte_result == ERR_LTE_READ_TIMEOUT){
-      printf("Error: Client not responding. Unable to read DRX configuration.\n");
-      printf("Status: RRC Connection Establishment refused.\n");
+      fprintf(server_log_file, "Error: Client not responding. Unable to read DRX configuration.\n");
+      fprintf(server_log_file, "Status: RRC Connection Establishment refused.\n");
       close_connection(client_socket);
       return;
     }
     else if(lte_result == ERR_LTE_DATA_MISMATCH){
-      printf("Error: Missing DRX configuration.\n");
-      printf("Status: RRC Connection Establishment refused.\n");
+      fprintf(server_log_file, "Error: Missing DRX configuration.\n");
+      fprintf(server_log_file, "Status: RRC Connection Establishment refused.\n");
       close_connection(client_socket);
       return;
     }
 
-    printf("Status: RRC Connection Establishment succeeded\n");
+    fprintf(server_log_file, "Status: RRC Connection Establishment succeeded\n");
 
     add_connected_client(client_socket, client_preamble.sequence, connection_request, setup_complete);
   }
   else if(connection_label.message_type == msg_x2_server_connection_request){
     //OTHER ENODEB CONNECTING
     if(connection_label.message_length != sizeof(X2_Server_Info)){
-      printf("Error: Mismatch in expected and received message label.\n");
-      printf("Status: X2 Connection Establishment aborted.\n");
+      fprintf(server_log_file, "Error: Mismatch in expected and received message label.\n");
+      fprintf(server_log_file, "Status: X2 Connection Establishment aborted.\n");
       close_connection(client_socket);
       return;
     }
     int x2_result = x2_handle_server_connection(client_socket);
     if(x2_result == ERR_X2_SERVER_CONNECTION_ESTABLISHED){
-      printf("Status: X2 Connection Establishment succeeded.\n");
+      fprintf(server_log_file, "Server address: %d.%d.%d.%d:%d\n",
+      other_server_info.address[0], other_server_info.address[1],
+      other_server_info.address[2], other_server_info.address[3],
+      other_server_info.eNodeB_port);
+      fprintf(server_log_file, "Status: X2 Connection Establishment succeeded.\n");
     }
     else if(x2_result == ERR_X2_OTHER_SERVER_CONNECTED){
-      printf("Error: Another server is allready connected.\n");
-      printf("Status: X2 Connection Establishment aborted.\n");
+      fprintf(server_log_file, "Error: Another server is allready connected.\n");
+      fprintf(server_log_file, "Status: X2 Connection Establishment aborted.\n");
       return;
     }
     else if(x2_result == ERR_X2_READ_TIMOUT){
-      printf("Error: Another server not responding.\n");
-      printf("Status: X2 Connection Establishment aborted.\n");
+      fprintf(server_log_file, "Error: Another server not responding.\n");
+      fprintf(server_log_file, "Status: X2 Connection Establishment aborted.\n");
       return;
     }
     else{
-      printf("Status: X2 Connection Establishment aborted.\n");
+      fprintf(server_log_file, "Status: X2 Connection Establishment aborted.\n");
       return;
     }
   }
   else if(connection_label.message_type == msg_handover_client_reconnection){
     //CLIENT HANDOVER RECONNECTION
     if(connection_label.message_length != sizeof(int)){
-      printf("Error: Data mismatch.\n");
-      printf("Status: Reconnection procedure aborted.\n");
+      fprintf(server_log_file, "Error: Data mismatch.\n");
+      fprintf(server_log_file, "Status: Reconnection procedure aborted.\n");
       close_connection(client_socket);
       return;
     }
     int reconnection_status = x2_handle_client_reconnection(client_socket);
     if(reconnection_status == ERR_X2_READ_TIMOUT){
-      printf("Error: Client not responding.\n");
-      printf("Status: Reconnection procedure aborted.\n");
+      fprintf(server_log_file, "Error: Client not responding.\n");
+      fprintf(server_log_file, "Status: Reconnection procedure aborted.\n");
       close_connection(client_socket);
       return;
     }
     else if(reconnection_status == ERR_RECONNECTION_CLIENT_BUFFER_CLIENT_NOT_FOUND){
-      printf("Error: Received old c-rnti not present in reconnection client buffer.\n");
-      printf("Status: Reconnection procedure aborted.\n");
+      fprintf(server_log_file, "Error: Received old c-rnti not present in reconnection client buffer.\n");
+      fprintf(server_log_file, "Status: Reconnection procedure aborted.\n");
       close_connection(client_socket);
       return;
     }
-    printf("Status: Reconnected client with old c-rnt '%d'.\n", reconnection_status);
+    fprintf(server_log_file, "Status: Reconnected client with old c-rnt '%d'.\n", reconnection_status);
   }
   else{
-    printf("Error: Invalid message label.\n");
-    printf("Status: Connection procedure aborted.\n");
+    fprintf(server_log_file, "Error: Invalid message label.\n");
+    fprintf(server_log_file, "Status: Connection procedure aborted.\n");
     close_connection(client_socket);
     return;
   }
@@ -196,18 +200,18 @@ void handle_new_connection(int server_socket){
   ev.data.fd = client_socket;
   if (epoll_ctl(epollfd, EPOLL_CTL_ADD, client_socket,
               &ev) == -1) {
-      perror("epoll_ctl");
+      fprintf(server_log_file,"Error 'epoll_ctl': %m\n");
       exit(EXIT_FAILURE);
   }
 }
 
 void close_connection(int client_socket){
-  printf("------------------------------------------\n");
-  printf("CLOSING CONNECTION\n");
+  fprintf(server_log_file, "------------------------------------------\n");
+  fprintf(server_log_file, "CLOSING CONNECTION\n");
   epoll_ctl(epollfd, EPOLL_CTL_DEL, client_socket, NULL);
   if(client_socket == other_server_fd){
-    printf("Server fd: %d\n", client_socket);
-    printf("Status: Closed connection with other server. Informing clients.\n");
+    fprintf(server_log_file, "Server fd: %d\n", client_socket);
+    fprintf(server_log_file, "Status: Closed connection with other server. Informing clients.\n");
     other_server_connected = false;
     other_server_info.eNodeB_port = 0;
     other_server_info.address[0] = 0;
@@ -217,9 +221,9 @@ void close_connection(int client_socket){
     take_action_hash(connected_clients, (void (*)(int))x2_send_server_info);
   }
   else{
-    printf("Cient fd: %d\n", client_socket);
+    fprintf(server_log_file, "Cient fd: %d\n", client_socket);
     del_connected_client(client_socket);
-    printf("Current connected clients number: %d\n", connected_clients_number);
+    fprintf(server_log_file, "Current connected clients number: %d\n", connected_clients_number);
   }
   close (client_socket);
 }
@@ -229,15 +233,21 @@ void handle_client_input(int client_socket){
   if(read_data_from_socket(client_socket, &received_message_label, sizeof(received_message_label)) < sizeof(received_message_label)){
     return;
   }
-  printf("------------------------------------------\n");
-  printf("RECEIVED MESSAGE\n");
-  printf("Client fd: %d\n", client_socket);
-  printf("Size: %d\n", received_message_label.message_length);
+  if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+    fprintf(server_log_file, "------------------------------------------\n");
+    fprintf(server_log_file, "RECEIVED MESSAGE\n");
+    fprintf(server_log_file, "Client fd: %d\n", client_socket);
+    fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);
+  }
   if(received_message_label.message_type == msg_ping_request){
-    printf("Type: msg_ping_request\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_ping_request\n");
+    }
   }
   else if(received_message_label.message_type == msg_ping_response){
-    printf("Type: msg_ping_response\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_ping_response\n");
+    }
     char *ping_data = malloc(received_message_label.message_length);
     read(client_socket, ping_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
@@ -245,7 +255,9 @@ void handle_client_input(int client_socket){
     free(ping_data);
   }
   else if(received_message_label.message_type == msg_battery_critcal){
-    printf("Type: msg_battery_critcal\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_battery_critcal\n");
+    }
     char *battery_data = malloc(received_message_label.message_length);
     read(client_socket, battery_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
@@ -253,65 +265,109 @@ void handle_client_input(int client_socket){
     free(battery_data);
   }
   else if(received_message_label.message_type == msg_request_download){
-    printf("Type: msg_request_download\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_request_download\n");
+    }
     start_download(get_connected_client(client_socket));
   }
   else if(received_message_label.message_type == msg_handover_measurment_report) {
-    printf("Type: msg_handover_measurment_report\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_handover_measurment_report\n");
+    }
     if(received_message_label.message_length != sizeof(int)){
-      printf("Error: Invalid message length.\n");
-      printf("Status: Measurment raport not handled\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Error: Invalid message length.\n");
+        fprintf(server_log_file, "Status: Measurment raport not handled\n");
+      }
       return;
     }
     int report_status = handle_measurment_raport(client_socket);
     if(report_status == ERR_X2_READ_TIMOUT){
-      printf("Error: Client not responding.\n");
-      printf("Status: Measurment raport not handled\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Error: Client not responding.\n");
+        fprintf(server_log_file, "Status: Measurment raport not handled\n");
+      }
       return;
     }
     int reported_signal = get_connected_client(client_socket)
     ->measurment_status.reported_signal;
-    printf("Reported signal: %d\n", reported_signal);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Reported signal: %d\n", reported_signal);
+    }
     if(reported_signal <= X2_HANDOVER_THRESHOLD){
       if(!other_server_connected){
-        printf("Status: Handover not possible. No other server available\n");
+        if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+          fprintf(server_log_file, "Status: Handover not possible. No other server available\n");
+        }
         return;
       }
       int handover_status = x2_handle_handover(client_socket);
       if(handover_status == X2_SUCCESS){
-        printf("Status: Starting handover procedure.\n");
-        close_connection(client_socket);
+        if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+          fprintf(server_log_file, "Status: Starting handover procedure.\n");
+        }
+        else{
+          fprintf(server_log_file, "------------------------------------------\n");
+          fprintf(server_log_file, "STARTING HANDOVER PROCEDURE\n");
+          fprintf(server_log_file, "Client fd: %d\n", client_socket);
+          fprintf(server_log_file, "Destination server: %d.%d.%d.%d:%d\n",
+          other_server_info.address[0], other_server_info.address[1],
+          other_server_info.address[2], other_server_info.address[3],
+          other_server_info.eNodeB_port);
+        }
+        //close_connection(client_socket);
       }
       else{
-        printf("Error: Unable to send client info.\n");
-        printf("Status: Handover aborted.\n");
+        if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+          fprintf(server_log_file, "Error: Unable to send client info.\n");
+          fprintf(server_log_file, "Status: Handover aborted.\n");
+        }
       }
     }
     else{
-      printf("Status: Handover not needed.\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Status: Handover not needed.\n");
+      }
     }
   }
   else if(received_message_label.message_type == msg_x2_recive_client_info) {
-    printf("Type: msg_x2_recive_client_info\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_x2_recive_client_info\n");
+    }
     connected_client client = {0};
     int receive_status = x2_recive_client_info();
     if(receive_status == X2_SUCCESS){
-      printf("Status: Receiving client info from other eNodeB succeeded\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Status: Receiving client info from other eNodeB succeeded\n");
+      }
     }
     else if(receive_status == ERR_X2_READ_TIMOUT){
-      printf("Error: Other server not responding\n");
-      printf("Status: Receiving aborted\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Error: Other server not responding\n");
+        fprintf(server_log_file, "Status: Receiving aborted\n");
+      }
     }
   }
+  else if(received_message_label.message_type == msg_request_available_file_list){
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_request_available_file_list\n");
+      fprintf(server_log_file, "Status: Sending list of files\n");
+    }
+    send_files_list(client_socket);
+  }
   else if(received_message_label.message_type == msg_ue_shutdown){
-    printf("Type: msg_ue_shutdown\n");
-    printf("Size: %d\n", received_message_label.message_length);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_ue_shutdown\n");
+      fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);
+    }
     close_connection(client_socket);
   }
   else{
     unsigned char unhandled_data;
-    printf("Error: Unhandled type - id=%d\n", received_message_label.message_type);
-    printf("Status: Reading unhandled data.\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Error: Unhandled type - id=%d\n", received_message_label.message_type);
+      fprintf(server_log_file, "Status: Reading unhandled data.\n");
+    }
     while(read(client_socket, &unhandled_data, 1)>0);
   }
 }

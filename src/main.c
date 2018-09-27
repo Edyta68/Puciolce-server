@@ -2,21 +2,29 @@
 
 int main(int argc, char** argv){
 
-  int optret = 0, server_options = 0;
+  int optret = 0, program_options = 0;
   opterr = 0;
   char *existing_server_port = "0";
-  while((optret = getopt(argc, argv, "lp:")) != -1){
+  char *log_file_name = "logs";
+  while((optret = getopt(argc, argv, "amp:f:")) != -1){
     switch (optret){
-      case 'l':
-        server_options |= SERVER_LOGS_PING;
+      case 'm':
+        program_options |= SERVER_MINIMAL_OUTPUT;
         break;
       case 'p':
-        server_options |= SERVER_ALREADY_EXISTING;
+        program_options |= SERVER_ALREADY_EXISTING;
         existing_server_port = optarg;
         break;
+      case 'f':
+        program_options |= SERVER_LOGS_TO_FILE;
+        log_file_name = optarg;
+        break;
+      case 'a':
+        program_options |= SERVER_LOGS_APPEND;
+        break;
       case '?':
-        if(optopt == 'p'){
-          fprintf(stderr, "Option -%c requiers an argument: existing servers port\n", optopt);
+        if(optopt == 'p' || optopt == 'f'){
+          fprintf(stderr, "Option -%c requires an argument.\n", optopt);
         }
         else{
           fprintf(stderr, "Unknown option: -%c\n", optopt);
@@ -30,7 +38,7 @@ int main(int argc, char** argv){
     exit(EXIT_FAILURE);
   }
 
-  server_run(atoi(argv[argc-1]), server_options, atoi(existing_server_port));
+  server_run(argv[optind], program_options, existing_server_port, log_file_name);
 
   return 0;
 }

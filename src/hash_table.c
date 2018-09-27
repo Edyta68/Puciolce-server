@@ -2,8 +2,6 @@
 
 unsigned int compute_Hash(const Hash_Table *table, const int key)
 {
-    if(table->size == 0)
-    printf("ZERO\n");
     if(key < table->size)
       return key;
     else

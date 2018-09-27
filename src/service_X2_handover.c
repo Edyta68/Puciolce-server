@@ -39,7 +39,8 @@ int x2_request_server_connection(struct sockaddr_in server_address){
     ev.data.fd = other_server_fd;
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, other_server_fd,
                 &ev) == -1) {
-        perror("epoll_ctl");
+        fprintf(server_log_file, "Error 'epoll_ctl': %m\n");
+        server_stop();
         exit(EXIT_FAILURE);
     }
 
@@ -159,9 +160,11 @@ bool handle_measurment_control(connected_client *client){
     write(client->temp_c_rnti, &control_label, sizeof(control_label));
     write(client->temp_c_rnti, &control_message, sizeof(control_message));
     client->measurment_status.last_request_time = clock();
-    printf("------------------------------------------\n");
-    printf("SENDING MEASURMENT CONTROL\n");
-    printf("Client fd: %d\n", client->temp_c_rnti);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "------------------------------------------\n");
+      fprintf(server_log_file, "SENDING MEASURMENT CONTROL\n");
+      fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+    }
     return true;
   }
   return false;

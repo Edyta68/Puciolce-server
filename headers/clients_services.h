@@ -6,6 +6,7 @@
 #include "service_ping.h"
 #include "service_download.h"
 #include "service_X2_handover.h"
+#include "logging.h"
 
 #define SERVICES_SLEEP_TIME 500 //ms
 
