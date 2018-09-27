@@ -13,7 +13,6 @@
 #define SERVER_PORT_BUFFER_SIZE 10
 
 #define EPOLL_MAX_EVENTS 10
-
 struct X2_Server_Info;
 typedef struct X2_Server_Info X2_Server_Info;
 
@@ -23,7 +22,8 @@ extern int nfds, epollfd;
 
 extern int server_socket;
 extern int server_options;
-extern FILE * server_log_file;
+extern FILE *server_log_file;
+extern FILE *server_log_file_read; 
 extern bool server_running;
 extern X2_Server_Info server_info;
 

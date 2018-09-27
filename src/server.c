@@ -7,6 +7,7 @@ bool server_running = false;
 int server_socket = 0;
 int server_options = 0;
 FILE *server_log_file = NULL;
+FILE *server_log_file_read = NULL;
 X2_Server_Info server_info = {0};
 
 void server_run(char *server_address, unsigned int options, char *existing_server_address, char* log_file_name)
@@ -22,17 +23,19 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
 			logs_file = fopen(log_file_name, "w");
 		}
 		if(logs_file == NULL){
-			fprintf(server_log_file, "Error 'accept': %m\n");
+			fprintf(server_log_file, "Error 'fopen': %m\n");
 			exit(EXIT_FAILURE);
 		}
 		else{
+			server_log_file_read = fopen(log_file_name, "r");
 			server_log_file = logs_file;
+			printf("Savings logs to file -> %s\n", log_file_name);
 		}
 	}
 
 	//server and client addressess
 	struct sockaddr_in addr_in;
-
+	fprintf(server_log_file, "\n");
 	//fill in server info
 	if(!server_fill_info_from_string(&server_info, &addr_in, server_address)){
 		fprintf(server_log_file, "Creating server failed.\n");
@@ -154,7 +157,7 @@ void server_stop(){
   close(server_socket);
   fprintf(server_log_file, "------------------------------------------\n");
   fprintf(server_log_file, "Server down\n");
-	fprintf(server_log_file, "------------------------------------------\n\n\n");
+	fprintf(server_log_file, "------------------------------------------\n\n");
   delete_Hash(connected_clients);
 	free_reconnection_client_buffer();
 	if(server_log_file != stdout){
@@ -210,6 +213,6 @@ bool server_fill_info_from_string(X2_Server_Info *server_info, struct sockaddr_i
 }
 
 void action_SIGINT(int signal){
-  fprintf(server_log_file, "\n");
+  printf("\n");
   server_running = false;
 }

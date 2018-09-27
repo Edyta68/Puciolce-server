@@ -64,7 +64,7 @@ void start_download(connected_client *client){
   }
 
   strcpy(client->download.info.filename, request.filename);
-  fprintf(server_log_file, "File name: %s\n", client->download.info.filename);
+  fprintf(server_log_file, "File name: '%s'\n", client->download.info.filename);
 
   if(access(request.filename, F_OK ) == -1){
     fprintf(server_log_file, "Error: No such file\n");
@@ -82,7 +82,6 @@ void start_download(connected_client *client){
   fprintf(server_log_file, "File size: %d\n", file_size);
 
   int packet_number = file_size/DOWNLOAD_PACKET_SIZE;
-  fprintf(server_log_file, "'Packet number: %d\n", packet_number);
   if(file_size%DOWNLOAD_PACKET_SIZE != 0){
     packet_number++;
   }

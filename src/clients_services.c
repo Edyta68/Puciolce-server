@@ -3,9 +3,12 @@
 pthread_t services_thread;
 
 void *run_services(void *unused){
+
+  setbuf(stdout, NULL);
   while(server_running){
     iter_Hash(connected_clients, handle_client_services);
-    usleep(SERVICES_SLEEP_TIME*1000);//converting to microseconds
+    print_logs_to_console();
+    usleep(SERVICES_SLEEP_TIME*1000); //converting to microseconds
   }
   pthread_exit(NULL);
   return NULL;
