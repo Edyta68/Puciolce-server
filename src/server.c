@@ -28,8 +28,18 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
 		}
 		else{
 			server_log_file_read = fopen(log_file_name, "r");
+			if(server_options & SERVER_LOGS_APPEND){
+				fseek(server_log_file_read, 0, SEEK_END);
+			}
 			server_log_file = logs_file;
 			printf("Savings logs to file -> %s\n", log_file_name);
+		}
+	}
+	else if(server_options & SERVER_INTERACTIVE){
+		server_log_file = fopen("/dev/null", "w");
+		if(server_log_file == NULL){
+			fprintf(server_log_file, "Error 'fopen': %m\n");
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -122,6 +132,15 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
 			 server_stop();
 			 exit(EXIT_FAILURE);
    }
+	 if(server_options&SERVER_INTERACTIVE){
+		 //starting input thread
+		 int thread_error = pthread_create(&interactive_thread, NULL,  run_server_interactive, NULL);
+		 if(thread_error){
+				fprintf(server_log_file, "Error - pthread_create() return code: %d\n",thread_error);
+				server_stop();
+				exit(EXIT_FAILURE);
+		 }
+ 	}
 
    while(server_running) {
       nfds = epoll_wait(epollfd, events, EPOLL_MAX_EVENTS, 0);
@@ -152,7 +171,9 @@ void server_run(char *server_address, unsigned int options, char *existing_serve
 }
 
 void server_stop(){
-  int thread_error = pthread_join( services_thread, NULL);
+	//server_running = false;
+  pthread_join( services_thread, NULL);
+	pthread_join( interactive_thread, NULL);
   take_action_hash(connected_clients,close_connection);
   close(server_socket);
   fprintf(server_log_file, "------------------------------------------\n");
@@ -163,6 +184,9 @@ void server_stop(){
 	free_reconnection_client_buffer();
 	if(server_log_file != stdout){
 		fclose(server_log_file);
+	}
+	if(server_log_file_read){
+		fclose(server_log_file_read);
 	}
 }
 bool server_fill_info_from_string(X2_Server_Info *server_info, struct sockaddr_in *addr_in, char *server_address){

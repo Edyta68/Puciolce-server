@@ -4,11 +4,14 @@
 
 #include "service_X2_handover.h"
 #include "clients_handling.h"
+#include "server_interactive.h"
 
 #define SERVER_MINIMAL_OUTPUT 1
 #define SERVER_ALREADY_EXISTING 2
 #define SERVER_LOGS_TO_FILE 2*2
 #define SERVER_LOGS_APPEND 2*2*2
+#define SERVER_INTERACTIVE 2*2*2*2
+
 #define SERVER_IP_BUFFER_SIZE 20
 #define SERVER_PORT_BUFFER_SIZE 10
 
