@@ -160,9 +160,11 @@ bool handle_measurment_control(connected_client *client){
     write(client->temp_c_rnti, &control_label, sizeof(control_label));
     write(client->temp_c_rnti, &control_message, sizeof(control_message));
     client->measurment_status.last_request_time = clock();
-    fprintf(server_log_file, "------------------------------------------\n");
-    fprintf(server_log_file, "SENDING MEASURMENT CONTROL\n");
-    fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "------------------------------------------\n");
+      fprintf(server_log_file, "SENDING MEASURMENT CONTROL\n");
+      fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+    }
     return true;
   }
   return false;

@@ -233,15 +233,21 @@ void handle_client_input(int client_socket){
   if(read_data_from_socket(client_socket, &received_message_label, sizeof(received_message_label)) < sizeof(received_message_label)){
     return;
   }
-  fprintf(server_log_file, "------------------------------------------\n");
-  fprintf(server_log_file, "RECEIVED MESSAGE\n");
-  fprintf(server_log_file, "Client fd: %d\n", client_socket);
-  fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);
+  if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+    fprintf(server_log_file, "------------------------------------------\n");
+    fprintf(server_log_file, "RECEIVED MESSAGE\n");
+    fprintf(server_log_file, "Client fd: %d\n", client_socket);
+    fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);
+  }
   if(received_message_label.message_type == msg_ping_request){
-    fprintf(server_log_file, "Type: msg_ping_request\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_ping_request\n");
+    }
   }
   else if(received_message_label.message_type == msg_ping_response){
-    fprintf(server_log_file, "Type: msg_ping_response\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_ping_response\n");
+    }
     char *ping_data = malloc(received_message_label.message_length);
     read(client_socket, ping_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
@@ -249,7 +255,9 @@ void handle_client_input(int client_socket){
     free(ping_data);
   }
   else if(received_message_label.message_type == msg_battery_critcal){
-    fprintf(server_log_file, "Type: msg_battery_critcal\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_battery_critcal\n");
+    }
     char *battery_data = malloc(received_message_label.message_length);
     read(client_socket, battery_data, received_message_label.message_length);
     connected_client *client = get_connected_client(client_socket);
@@ -257,70 +265,109 @@ void handle_client_input(int client_socket){
     free(battery_data);
   }
   else if(received_message_label.message_type == msg_request_download){
-    fprintf(server_log_file, "Type: msg_request_download\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_request_download\n");
+    }
     start_download(get_connected_client(client_socket));
   }
   else if(received_message_label.message_type == msg_handover_measurment_report) {
-    fprintf(server_log_file, "Type: msg_handover_measurment_report\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_handover_measurment_report\n");
+    }
     if(received_message_label.message_length != sizeof(int)){
-      fprintf(server_log_file, "Error: Invalid message length.\n");
-      fprintf(server_log_file, "Status: Measurment raport not handled\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Error: Invalid message length.\n");
+        fprintf(server_log_file, "Status: Measurment raport not handled\n");
+      }
       return;
     }
     int report_status = handle_measurment_raport(client_socket);
     if(report_status == ERR_X2_READ_TIMOUT){
-      fprintf(server_log_file, "Error: Client not responding.\n");
-      fprintf(server_log_file, "Status: Measurment raport not handled\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Error: Client not responding.\n");
+        fprintf(server_log_file, "Status: Measurment raport not handled\n");
+      }
       return;
     }
     int reported_signal = get_connected_client(client_socket)
     ->measurment_status.reported_signal;
-    fprintf(server_log_file, "Reported signal: %d\n", reported_signal);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Reported signal: %d\n", reported_signal);
+    }
     if(reported_signal <= X2_HANDOVER_THRESHOLD){
       if(!other_server_connected){
-        fprintf(server_log_file, "Status: Handover not possible. No other server available\n");
+        if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+          fprintf(server_log_file, "Status: Handover not possible. No other server available\n");
+        }
         return;
       }
       int handover_status = x2_handle_handover(client_socket);
       if(handover_status == X2_SUCCESS){
-        fprintf(server_log_file, "Status: Starting handover procedure.\n");
+        if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+          fprintf(server_log_file, "Status: Starting handover procedure.\n");
+        }
+        else{
+          fprintf(server_log_file, "------------------------------------------\n");
+          fprintf(server_log_file, "STARTING HANDOVER PROCEDURE\n");
+          fprintf(server_log_file, "Client fd: %d\n", client_socket);
+          fprintf(server_log_file, "Destination server: %d.%d.%d.%d:%d\n",
+          other_server_info.address[0], other_server_info.address[1],
+          other_server_info.address[2], other_server_info.address[3],
+          other_server_info.eNodeB_port);
+        }
         //close_connection(client_socket);
       }
       else{
-        fprintf(server_log_file, "Error: Unable to send client info.\n");
-        fprintf(server_log_file, "Status: Handover aborted.\n");
+        if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+          fprintf(server_log_file, "Error: Unable to send client info.\n");
+          fprintf(server_log_file, "Status: Handover aborted.\n");
+        }
       }
     }
     else{
-      fprintf(server_log_file, "Status: Handover not needed.\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Status: Handover not needed.\n");
+      }
     }
   }
   else if(received_message_label.message_type == msg_x2_recive_client_info) {
-    fprintf(server_log_file, "Type: msg_x2_recive_client_info\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_x2_recive_client_info\n");
+    }
     connected_client client = {0};
     int receive_status = x2_recive_client_info();
     if(receive_status == X2_SUCCESS){
-      fprintf(server_log_file, "Status: Receiving client info from other eNodeB succeeded\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Status: Receiving client info from other eNodeB succeeded\n");
+      }
     }
     else if(receive_status == ERR_X2_READ_TIMOUT){
-      fprintf(server_log_file, "Error: Other server not responding\n");
-      fprintf(server_log_file, "Status: Receiving aborted\n");
+      if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+        fprintf(server_log_file, "Error: Other server not responding\n");
+        fprintf(server_log_file, "Status: Receiving aborted\n");
+      }
     }
   }
   else if(received_message_label.message_type == msg_request_available_file_list){
-    fprintf(server_log_file, "Type: msg_request_available_file_list\n");
-    fprintf(server_log_file, "Status: Sending list of files\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_request_available_file_list\n");
+      fprintf(server_log_file, "Status: Sending list of files\n");
+    }
     send_files_list(client_socket);
   }
   else if(received_message_label.message_type == msg_ue_shutdown){
-    fprintf(server_log_file, "Type: msg_ue_shutdown\n");
-    fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Type: msg_ue_shutdown\n");
+      fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);
+    }
     close_connection(client_socket);
   }
   else{
     unsigned char unhandled_data;
-    fprintf(server_log_file, "Error: Unhandled type - id=%d\n", received_message_label.message_type);
-    fprintf(server_log_file, "Status: Reading unhandled data.\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Error: Unhandled type - id=%d\n", received_message_label.message_type);
+      fprintf(server_log_file, "Status: Reading unhandled data.\n");
+    }
     while(read(client_socket, &unhandled_data, 1)>0);
   }
 }

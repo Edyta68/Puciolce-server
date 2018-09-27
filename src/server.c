@@ -158,7 +158,8 @@ void server_stop(){
   fprintf(server_log_file, "------------------------------------------\n");
   fprintf(server_log_file, "Server down\n");
 	fprintf(server_log_file, "------------------------------------------\n\n");
-  delete_Hash(connected_clients);
+	print_logs_to_console();
+	delete_Hash(connected_clients);
 	free_reconnection_client_buffer();
 	if(server_log_file != stdout){
 		fclose(server_log_file);

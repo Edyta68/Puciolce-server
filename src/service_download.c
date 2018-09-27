@@ -5,11 +5,12 @@ bool handle_client_download(connected_client *client){
     return false;
   }
 
-  fprintf(server_log_file, "------------------------------------------\n");
-  fprintf(server_log_file, "SENDING DOWNLOAD PACKET TO CLIENT\n");
-  fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
-  fprintf(server_log_file, "File name: %s\n", client->download.info.filename);
-
+  if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+    fprintf(server_log_file, "------------------------------------------\n");
+    fprintf(server_log_file, "SENDING DOWNLOAD PACKET TO CLIENT\n");
+    fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+    fprintf(server_log_file, "File name: %s\n", client->download.info.filename);
+  }
   message_label response_label = {
     message_type: msg_download_packet,
     message_length: sizeof(Download_Packet)
@@ -18,21 +19,36 @@ bool handle_client_download(connected_client *client){
   Download_Packet packet = {0};
   packet.packet_number = client->download.current_packet_index;
   packet.data_size = read(client->download.file_descriptor, packet.data, DOWNLOAD_PACKET_SIZE);
-  fprintf(server_log_file, "Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
+  if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+    fprintf(server_log_file, "Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
+  }
   char* data = malloc(DOWNLOAD_PACKET_SIZE+1);
   memcpy(data, packet.data, DOWNLOAD_PACKET_SIZE);
   data[DOWNLOAD_PACKET_SIZE] = '\0';
-  fprintf(server_log_file, "Packet data: '%s'\n", data);
+  if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+    fprintf(server_log_file, "Packet data: '%s'\n", data);
+  }
   write(client->temp_c_rnti, &packet, sizeof(packet));
   free(data);
 
   if(++client->download.current_packet_index >= client->download.info.number_of_packets){
     close(client->download.file_descriptor);
     client->download.in_progress = false;
-    fprintf(server_log_file, "Status: Closing download procedure\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Status: Closing download procedure\n");
+    }else{
+      fprintf(server_log_file, "------------------------------------------\n");
+      fprintf(server_log_file, "ENDING DOWNLOAD PROCEDURE\n");
+      fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+      fprintf(server_log_file, "File name: %s\n", client->download.info.filename);
+      fprintf(server_log_file, "Packet number: %d/%d\n", packet.packet_number+1,client->download.info.number_of_packets);
+      fprintf(server_log_file, "Status: Closing download procedure\n");
+    }
   }
   else{
-    fprintf(server_log_file, "Status: Download procedure in progress\n");
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "Status: Download procedure in progress\n");
+    }
   }
 
   return true;

@@ -5,7 +5,7 @@
 #include "service_X2_handover.h"
 #include "clients_handling.h"
 
-#define SERVER_LOGS_PING 1
+#define SERVER_MINIMAL_OUTPUT 1
 #define SERVER_ALREADY_EXISTING 2
 #define SERVER_LOGS_TO_FILE 2*2
 #define SERVER_LOGS_APPEND 2*2*2
@@ -23,7 +23,7 @@ extern int nfds, epollfd;
 extern int server_socket;
 extern int server_options;
 extern FILE *server_log_file;
-extern FILE *server_log_file_read; 
+extern FILE *server_log_file_read;
 extern bool server_running;
 extern X2_Server_Info server_info;
 

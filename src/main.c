@@ -6,10 +6,10 @@ int main(int argc, char** argv){
   opterr = 0;
   char *existing_server_port = "0";
   char *log_file_name = "logs";
-  while((optret = getopt(argc, argv, "alp:f:")) != -1){
+  while((optret = getopt(argc, argv, "amp:f:")) != -1){
     switch (optret){
-      case 'l':
-        program_options |= SERVER_LOGS_PING;
+      case 'm':
+        program_options |= SERVER_MINIMAL_OUTPUT;
         break;
       case 'p':
         program_options |= SERVER_ALREADY_EXISTING;

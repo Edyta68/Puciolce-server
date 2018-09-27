@@ -22,10 +22,12 @@ bool ping_client(connected_client *client) {
 
     write(client->temp_c_rnti, &ping_request_label, sizeof(ping_request_label));
     write(client->temp_c_rnti, ping_data, PING_DATA_SIZE);
-    fprintf(server_log_file, "------------------------------------------\n");
-    fprintf(server_log_file, "SENDING PING REQUEST\n");
-    fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
-    fprintf(server_log_file, "Ping interval: %.0fms\n", expected_interval);
+    if(!(server_options & SERVER_MINIMAL_OUTPUT)){
+      fprintf(server_log_file, "------------------------------------------\n");
+      fprintf(server_log_file, "SENDING PING REQUEST\n");
+      fprintf(server_log_file, "Client fd: %d\n", client->temp_c_rnti);
+      fprintf(server_log_file, "Ping interval: %.0fms\n", expected_interval);
+    }
     client->ping.last_request_time = clock();
   }
 
