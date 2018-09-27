@@ -1,7 +1,10 @@
 #include "logging.h"
 
 void print_logs_to_console(){
-  if(server_options&SERVER_LOGS_TO_FILE){
+  if(server_options&SERVER_INTERACTIVE){
+    fflush(server_log_file);
+  }
+  else if(server_options&SERVER_LOGS_TO_FILE){
     fflush(server_log_file);
     char buffer = 0;
     int read_size = 0;

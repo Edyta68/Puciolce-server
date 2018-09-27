@@ -6,8 +6,11 @@ int main(int argc, char** argv){
   opterr = 0;
   char *existing_server_port = "0";
   char *log_file_name = "logs";
-  while((optret = getopt(argc, argv, "amp:f:")) != -1){
+  while((optret = getopt(argc, argv, "aimp:f:")) != -1){
     switch (optret){
+      case 'i':
+        program_options |= SERVER_INTERACTIVE;
+        break;
       case 'm':
         program_options |= SERVER_MINIMAL_OUTPUT;
         break;

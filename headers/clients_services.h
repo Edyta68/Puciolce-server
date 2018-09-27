@@ -9,7 +9,6 @@
 #include "logging.h"
 
 #define SERVICES_SLEEP_TIME 500 //ms
-
 extern pthread_t services_thread;
 
 void *run_services(void *unused);

@@ -213,6 +213,7 @@ void close_connection(int client_socket){
     fprintf(server_log_file, "Server fd: %d\n", client_socket);
     fprintf(server_log_file, "Status: Closed connection with other server. Informing clients.\n");
     other_server_connected = false;
+    other_server_fd = 0;
     other_server_info.eNodeB_port = 0;
     other_server_info.address[0] = 0;
     other_server_info.address[1] = 0;
