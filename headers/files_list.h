@@ -9,4 +9,4 @@
 #define SUCCESS_SEND_FILES_LIST 1
 #define ERR_OPEN_DIR -1
 
-int SendListOfFiles(int client_socket);
+int send_files_list(int client_socket);

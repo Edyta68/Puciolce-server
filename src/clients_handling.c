@@ -307,6 +307,9 @@ void handle_client_input(int client_socket){
       fprintf(server_log_file, "Status: Receiving aborted\n");
     }
   }
+  else if(received_message_label.message_type == msg_request_available_file_list){
+    send_files_list(client_socket);
+  }
   else if(received_message_label.message_type == msg_ue_shutdown){
     fprintf(server_log_file, "Type: msg_ue_shutdown\n");
     fprintf(server_log_file, "Size: %d\n", received_message_label.message_length);

@@ -1,6 +1,6 @@
 #include "files_list.h"
 
-int SendListOfFiles(int client_socket)
+int send_files_list(int client_socket)
 {
     DIR *directory;
     struct dirent *file;
@@ -36,7 +36,7 @@ int SendListOfFiles(int client_socket)
         }
 
         message_label download_list_label = {
-            message_type: msg_show_all_files_to_download,
+            message_type: msg_response_available_file_list,
             message_length: Size
         };
 

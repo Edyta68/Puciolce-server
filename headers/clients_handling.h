@@ -25,6 +25,7 @@
 #include "message_label.h"
 #include "server.h"
 #include "service_X2_handover.h"
+#include "files_list.h"
 
 #define MAX_MSG_LEN 256
 #define MAX_READ_TIMEOUT_MS 1000.f

@@ -24,7 +24,8 @@ typedef enum Message_Type
     msg_x2_recive_client_info,
     msg_x2_server_connection_request,
     msg_x2_server_connection_response,
-    msg_show_all_files_to_download
+    msg_request_available_file_list,
+    msg_response_available_file_list
 } Message_Type;
 
 typedef struct message_label
