@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "message_label.h"
+#include "service_download.h"
 
-#define DOWNLOAD_FOLDER "/Download/"
 #define FOLDER_PATH_SIZE 256
 #define SUCCESS_SEND_FILES_LIST 1
 #define ERR_OPEN_DIR -1

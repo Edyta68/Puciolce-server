@@ -12,6 +12,7 @@ int send_files_list(int client_socket)
     char directory_path[FOLDER_PATH_SIZE];
     if(getcwd(directory_path, sizeof(directory_path)) == NULL)
         return ERR_OPEN_DIR;
+    strcat(directory_path, "/");
     strcat(directory_path, DOWNLOAD_FOLDER);
     directory = opendir(directory_path);
     if(directory) {
