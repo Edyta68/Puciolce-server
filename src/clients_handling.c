@@ -308,6 +308,8 @@ void handle_client_input(int client_socket){
     }
   }
   else if(received_message_label.message_type == msg_request_available_file_list){
+    fprintf(server_log_file, "Type: msg_request_available_file_list\n");
+    fprintf(server_log_file, "Status: Sending list of files\n");
     send_files_list(client_socket);
   }
   else if(received_message_label.message_type == msg_ue_shutdown){
