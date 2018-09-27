@@ -13,6 +13,8 @@
 #include "message_label.h"
 #include "download.h"
 
+#define DOWNLOAD_FOLDER "Download/"
+
 typedef struct connected_client connected_client;
 
 //returns true if clients downloading is currently in progress
